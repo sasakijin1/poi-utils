@@ -943,7 +943,6 @@ public final class OfficeIoFactory {
                 font.setColor(cellOptions.getCellStyleOptions().getDataFontColor());
                 font.setFontHeightInPoints(cellOptions.getCellStyleOptions().getDataSize());
             } else {
-                // TODO 处理XLS表头样式
                 style.setFillForegroundColor(cellOptions.getCellStyleOptions().getTitleForegroundColor());
                 style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
                 style.setBorderRight(cellOptions.getCellStyleOptions().getTitleBorder()[0]);

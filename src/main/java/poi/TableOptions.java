@@ -1,12 +1,3 @@
-/**
-*开发单位：FESCO Adecco 
-*版权：FESCO Adecco
-*@author：wujinglei
-*@since： JDK1.6
-*@version：1.0
-*@date：2014-9-29 上午11:17:31
-*/ 
-
 package poi;
 
 import java.util.List;

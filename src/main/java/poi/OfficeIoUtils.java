@@ -1,12 +1,3 @@
-/**
-*开发单位：FESCO Adecco 
-*版权：FESCO Adecco
-*@author：wujinglei
-*@since： JDK1.6
-*@version：1.0
-*@date：2014年6月10日 下午5:57:20
-*/ 
-
 package poi;
 
 import org.slf4j.Logger;
