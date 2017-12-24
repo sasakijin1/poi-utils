@@ -215,6 +215,14 @@ public final class OfficeIoFactory {
         }
     }
 
+    /**
+     *
+     * @param workbook
+     * @param hasSubTitle
+     * @param result
+     * @param thisSheetOptions
+     * @param sheet
+     */
     private void buildDemoDataList(Workbook workbook,boolean hasSubTitle, OfficeIoResult result, SheetOptions thisSheetOptions, Sheet sheet) {
 
         CellStyle dateStyle = result.getResultWorkbook().createCellStyle();
@@ -306,25 +314,7 @@ public final class OfficeIoFactory {
                         try {
                             setCellDataValue(sheet, cell, thisCellOptions, dataIndex + startRowIndex, xlsCellIndex, bean, dateStyle);
                         } catch (Exception e) {
-                            // TODO 统一处理异常
-//                        try {
-//                        } catch (IllegalArgumentException e) {
-//                            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, cellOptions, "数据异常(数据类型转换导致)", "跳过行处理", false));
-//                            result.addErrorRecordRow(sheetIndex, row);
-//                            continue rowLoop;
-//                        } catch (NoSuchMethodException e) {
-//                            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, cellOptions, "属性异常(无法找到相应的属性)", "跳过行处理", true));
-//                            result.addErrorRecordRow(sheetIndex, row);
-//                            continue rowLoop;
-//                        } catch (InvocationTargetException e) {
-//                            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, cellOptions, "数据集异常(集合中的单个数据集异常)", "跳过行处理", true));
-//                            result.addErrorRecordRow(sheetIndex, row);
-//                            continue rowLoop;
-//                        } catch (IllegalAccessException e) {
-//                            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, cellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
-//                            result.addErrorRecordRow(sheetIndex, row);
-//                            continue rowLoop;
-//                        }
+                            recordSetCellDataValueException(result,row,sheetIndex,dataIndex,cellIndex,thisCellOptions,e);
                             continue rowLoop;
                         }
                         xlsCellIndex++;
@@ -337,7 +327,7 @@ public final class OfficeIoFactory {
                             try {
                                 setCellDataValue(sheet, cell, thisSubCellOptions, dataIndex + startRowIndex, xlsCellIndex, bean, dateStyle);
                             } catch (Exception e) {
-                                // TODO 统一处理异常
+                                recordSetCellDataValueException(result,row,sheetIndex,dataIndex,cellIndex,thisCellOptions,e);
                                 continue rowLoop;
                             }
                             xlsCellIndex++;
@@ -861,6 +851,14 @@ public final class OfficeIoFactory {
         return celldate;
     }
 
+    /**
+     *
+     * @param workbook
+     * @param row
+     * @param xlsCellIndex
+     * @param cellOptions
+     * @return
+     */
     private Cell createTitleCell(Workbook workbook,Row row, int xlsCellIndex, CellOptions cellOptions) {
         // 构建一个CELL
         Cell cell = row.createCell(xlsCellIndex);
@@ -872,6 +870,14 @@ public final class OfficeIoFactory {
         return cell;
     }
 
+    /**
+     *
+     * @param workbook
+     * @param row
+     * @param xlsCellIndex
+     * @param cellOptions
+     * @return
+     */
     private Cell createDataCell(Workbook workbook,Row row, int xlsCellIndex, CellOptions cellOptions) {
         // 构建一个CELL
         Cell cell = row.createCell(xlsCellIndex);
@@ -890,6 +896,20 @@ public final class OfficeIoFactory {
         return cell;
     }
 
+    /**
+     *
+     * @param sheet
+     * @param cell
+     * @param cellOptions
+     * @param rowIndex
+     * @param xlsCellIndex
+     * @param dataBean
+     * @param dateStyle
+     * @return
+     * @throws IllegalAccessException
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     */
     private Cell setCellDataValue(Sheet sheet, Cell cell, CellOptions cellOptions, int rowIndex, int xlsCellIndex, Object dataBean, CellStyle dateStyle) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         //写入内容
         if (cellOptions.getHasStaticValue()) {
@@ -925,6 +945,13 @@ public final class OfficeIoFactory {
         return cell;
     }
 
+    /**
+     *
+     * @param workbook
+     * @param cellOptions
+     * @param isTitle
+     * @return
+     */
     private CellStyle getCellStyle(Workbook workbook,CellOptions cellOptions,boolean isTitle){
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -961,5 +988,36 @@ public final class OfficeIoFactory {
             log.warn(e.getMessage());
         }
         return style;
+    }
+
+    /**
+     * 统一处理异常
+     * @param result
+     * @param row
+     * @param sheetIndex
+     * @param dataIndex
+     * @param cellIndex
+     * @param thisCellOptions
+     * @param e
+     */
+    private void recordSetCellDataValueException(OfficeIoResult result, Row row, Integer sheetIndex, int dataIndex, int cellIndex, CellOptions thisCellOptions,Exception e){
+        try{
+            throw e;
+        } catch (IllegalArgumentException illegalArgumentException) {
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据异常(数据类型转换导致)", "跳过行处理", false));
+            result.addErrorRecordRow(sheetIndex, row);
+        } catch (NoSuchMethodException noSuchMethodException) {
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "属性异常(无法找到相应的属性)", "跳过行处理", true));
+            result.addErrorRecordRow(sheetIndex, row);
+        } catch (InvocationTargetException invocationTargetException) {
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据集异常(集合中的单个数据集异常)", "跳过行处理", true));
+            result.addErrorRecordRow(sheetIndex, row);
+        } catch (IllegalAccessException illegalAccessException) {
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
+            result.addErrorRecordRow(sheetIndex, row);
+        } catch (Exception e1) {
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
+            result.addErrorRecordRow(sheetIndex, row);
+        }
     }
 }

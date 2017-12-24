@@ -18,7 +18,6 @@ import java.util.Map;
  * @date 2014年6月10日 下午5:57:20
  *
  */
-@SuppressWarnings("rawtypes")
 public final class OfficeIoUtils {
 
 	private final static Logger log = LoggerFactory.getLogger(OfficeIoFactory.class);
@@ -39,7 +38,12 @@ public final class OfficeIoUtils {
 	public static OfficeIoResult exportXlsxTempalet(SheetOptions[] sheets){
 		return ioFactory.exportXlsxTempalet(sheets);
 	}
-	
+
+	/**
+	 *
+	 * @param sheets
+	 * @return
+	 */
 	public static OfficeIoResult exportXlsx(SheetOptions[] sheets){
 		return ioFactory.exportXlsx(sheets);
 	}
