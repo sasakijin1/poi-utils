@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import poi.model.SheetOptions;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +46,9 @@ public final class OfficeIoUtils {
 		return ioFactory.exportXlsx(sheets);
 	}
 
+	public static OfficeIoResult importXlsx(InputStream inputStream, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+		return ioFactory.importXlsx(inputStream, sheets);
+	}
 
 	/**
 	 * @author: wujinglei
