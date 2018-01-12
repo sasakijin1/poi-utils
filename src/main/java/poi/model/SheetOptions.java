@@ -1,4 +1,4 @@
-package poi;
+package poi.model;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +10,6 @@ import java.util.List;
  * @date 2014年6月11日 上午10:36:28
  *
  */
-@SuppressWarnings("rawtypes")
 public final class SheetOptions {
 	
 	/**
@@ -188,9 +187,6 @@ public final class SheetOptions {
 		this.dataClazzType = dataClazzType;
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return 

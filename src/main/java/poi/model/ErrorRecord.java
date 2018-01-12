@@ -1,8 +1,7 @@
-package poi;
+package poi.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 
 /**
  * @ClassName: ErrorRecord

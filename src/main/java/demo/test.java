@@ -1,6 +1,9 @@
 package demo;
 
 import poi.*;
+import poi.model.CellDataType;
+import poi.model.CellOptions;
+import poi.model.SheetOptions;
 
 import java.io.File;
 import java.io.FileNotFoundException;

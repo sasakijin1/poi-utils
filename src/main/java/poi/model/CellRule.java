@@ -1,4 +1,4 @@
-package poi;
+package poi.model;
 
 /**
  * @ClassName: CellRule

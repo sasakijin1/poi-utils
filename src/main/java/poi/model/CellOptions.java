@@ -1,4 +1,4 @@
-package poi;
+package poi.model;
 
 import java.util.List;
 import java.util.Map;
@@ -118,9 +118,6 @@ public final class CellOptions {
 		return cellRule;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return 

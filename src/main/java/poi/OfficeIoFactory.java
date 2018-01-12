@@ -8,9 +8,18 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.RegionUtil;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFDataValidation;
+import org.apache.poi.xssf.usermodel.XSSFDataValidationConstraint;
+import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import poi.exception.GetCellValueRunTimeException;
+import poi.exception.XSSFCellTypeException;
+import poi.model.CellDataType;
+import poi.model.CellOptions;
+import poi.model.ErrorRecord;
+import poi.model.SheetOptions;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -569,7 +578,7 @@ public final class OfficeIoFactory {
                 result.addErrorRecord(new ErrorRecord(thisSheetOptions.getSheetSeq(), "无法在文件中找到指定的sheet序号", "跳过sheet处理", true));
                 continue;
             }
-            // 取提对应的sheeet
+            // 取提对应的sheet
             Sheet sheet = wb.getSheetAt(thisSheetOptions.getSheetSeq());
             List sheetList = new ArrayList();
             // 获取表中的总行数
@@ -588,7 +597,7 @@ public final class OfficeIoFactory {
                 // 取的当前行
                 Row activeRow = sheet.getRow(row);
                 // 判断当前行记录是否有有效
-                if (activeRow != null && !(activeRow.equals(""))) {
+                if (activeRow != null) {
                     // 第一行的各列放在一个MAP中
                     Object resultObj = null;
                     try {
@@ -688,12 +697,7 @@ public final class OfficeIoFactory {
                     case NUMBER:
                         try {
                             if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                                BigDecimal varDou = new BigDecimal(cell.getNumericCellValue() + "");
-                                if (varDou == null) {
-                                    return "";
-                                } else {
-                                    return varDou;
-                                }
+                                return new BigDecimal(cell.getNumericCellValue() + "");
                             } else {
                                 String varStr = cell.getStringCellValue();
                                 if (StringUtils.isBlank(varStr)) {
@@ -708,11 +712,10 @@ public final class OfficeIoFactory {
                     case DATE:
                         if (STRING == cell.getCellTypeEnum()) {
                             String cellDate = cell.getStringCellValue();
-                            Date getcellDate = DateType(cellDate);
-                            return StringUtils.isNotBlank(cell.getStringCellValue()) ? getcellDate : null;
+                            Date getCellDate = dateType(cellDate);
+                            return StringUtils.isNotBlank(cell.getStringCellValue()) ? getCellDate : null;
                         } else {
-                            Date varDate = cell.getDateCellValue();
-                            return varDate;
+                            return cell.getDateCellValue();
                         }
                     case TIMESTAMP:
                         String varTimestamp = "";
@@ -772,8 +775,7 @@ public final class OfficeIoFactory {
                             Date date = org.apache.poi.ss.usermodel.DateUtil.getJavaDate(dbValue);
                             return longDateFormat.format(date);
                         } else {
-                            BigDecimal varDou = new BigDecimal(NUMBER_FORMAT.format(cell.getNumericCellValue()));
-                            return varDou;
+                            return new BigDecimal(NUMBER_FORMAT.format(cell.getNumericCellValue()));
                         }
                         //工式
                     case FORMULA:
@@ -838,17 +840,18 @@ public final class OfficeIoFactory {
         return String.valueOf(returnObj);
     }
 
-    private Date DateType(String s) {
-        Date celldate = null;
+    private Date dateType(String s) {
+        Date cellDate = null;
         try {
-            celldate = longDateFormat.parse(s);
+            cellDate = longDateFormat.parse(s);
         } catch (Exception ex) {
             try {
-                celldate = shortDateFormat.parse(s);
-            } catch (ParseException e) {
+                cellDate = shortDateFormat.parse(s);
+            }catch (ParseException e) {
+                log.error(e.getMessage(),e);
             }
         }
-        return celldate;
+        return cellDate;
     }
 
     /**

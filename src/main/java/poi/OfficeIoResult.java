@@ -7,8 +7,9 @@ import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import poi.model.ErrorRecord;
+import poi.model.SheetOptions;
 
 /**
  * @ClassName: OfficeIoResult
@@ -17,7 +18,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * @date 2014年6月11日 上午9:53:03
  *
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
 public final class OfficeIoResult<T> {
 	
 	/**

@@ -1,5 +1,7 @@
 package poi;
 
+import poi.model.CellOptions;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

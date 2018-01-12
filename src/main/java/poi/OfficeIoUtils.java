@@ -2,6 +2,7 @@ package poi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import poi.model.SheetOptions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
