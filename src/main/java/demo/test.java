@@ -17,10 +17,10 @@ import java.util.Map;
 public class test {
 
     public static void main(String[] args) throws IOException, InvocationTargetException, IllegalAccessException {
-        List list = importXls();
-        System.out.println(list.size());
-        exportXls(list);
-//        exportXlsTemplate();
+//        List list = importXls();
+//        System.out.println(list.size());
+//        exportXls(list);
+        exportXlsTemplate();
     }
 
     private static List importXls() throws FileNotFoundException, InvocationTargetException, IllegalAccessException {
@@ -70,6 +70,12 @@ public class test {
         transactStatusFixed.put("2", "已办理");
         transactStatusFixed.put("3", "已退回");
 
+        Map aa = new HashMap();
+        aa.put("444", "4444");
+        aa.put("555", "5555");
+        aa.put("666", "6666");
+        aa.put("777", "7777");
+
         SheetOptions sheet = new SheetOptions("测试1");
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
@@ -90,7 +96,7 @@ public class test {
                             new CellOptions("dayFormat","格式日期")
                         }
                 ),
-                new CellOptions("select","下拉"),
+                new CellOptions("select","下拉").addCellSelect(aa),
                 new CellOptions("amountStr","金额文字"),
                 new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
                 new CellOptions("status","状态").addCellSelect(transactStatusFixed)

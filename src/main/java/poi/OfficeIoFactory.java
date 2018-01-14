@@ -1,16 +1,15 @@
 package poi;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.DVConstraint;
+import org.apache.poi.hssf.usermodel.HSSFDataValidation;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.RegionUtil;
-import org.apache.poi.xssf.usermodel.XSSFDataValidation;
-import org.apache.poi.xssf.usermodel.XSSFDataValidationConstraint;
-import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import poi.exception.XSSFCellTypeException;
@@ -126,13 +125,17 @@ public final class OfficeIoFactory {
         // 实例化返回对象
         OfficeIoResult result = new OfficeIoResult(sheetOptionsArray);
         // 循环构建sheet
-        for (SheetOptions thisSheetOptions : sheetOptionsArray) {
+        for (int sheetIndex = 0; sheetIndex < sheetOptionsArray.length; sheetIndex++) {
+            SheetOptions thisSheetOptions = sheetOptionsArray[sheetIndex];
             // 创建sheet
             Sheet sheet = result.getResultWorkbook().createSheet(thisSheetOptions.getSheetName());
             // 构建标题
-            boolean hasSubTitle = buildTitle(result.getResultWorkbook(),sheet, thisSheetOptions.getCellOptions());
+            boolean hasSubTitle = buildTitle(result.getResultWorkbook(), sheet, thisSheetOptions.getCellOptions());
+
+            createHideSelectSheet(result.getResultWorkbook(), thisSheetOptions, sheetIndex);
+
             // 导入DEMO数据
-            buildDemoDataList(result.getResultWorkbook(),hasSubTitle, result, thisSheetOptions, sheet);
+            buildDemoDataList(result.getResultWorkbook(), hasSubTitle, result, thisSheetOptions, sheet);
         }
         return result;
     }
@@ -144,12 +147,12 @@ public final class OfficeIoFactory {
      * @param cells
      * @return
      */
-    private boolean buildTitle(Workbook workbook,Sheet sheet, CellOptions[] cells) {
+    private boolean buildTitle(Workbook workbook, Sheet sheet, CellOptions[] cells) {
         // 设置列头
-        boolean hasSubTitle = buildTopTitle(workbook,sheet, cells, sheet.createRow(0));
+        boolean hasSubTitle = buildTopTitle(workbook, sheet, cells, sheet.createRow(0));
         // 处理子列头
         if (hasSubTitle) {
-            buildSubTitle(workbook,sheet, cells, sheet.createRow(1));
+            buildSubTitle(workbook, sheet, cells, sheet.createRow(1));
         }
         return hasSubTitle;
     }
@@ -162,12 +165,12 @@ public final class OfficeIoFactory {
      * @param titleRow
      * @return
      */
-    private boolean buildTopTitle(Workbook workbook,Sheet sheet, CellOptions[] cells, Row titleRow) {
+    private boolean buildTopTitle(Workbook workbook, Sheet sheet, CellOptions[] cells, Row titleRow) {
         boolean hasSubTitle = false;
         for (int titleIndex = 0, xlsCellIndex = 0; titleIndex < cells.length; titleIndex++) {
             CellOptions thisCellsOptions = cells[titleIndex];
             // 构建CELL
-            Cell cell = createTitleCell(workbook,titleRow, xlsCellIndex, thisCellsOptions);
+            Cell cell = createTitleCell(workbook, titleRow, xlsCellIndex, thisCellsOptions);
 
             cell.setCellValue(thisCellsOptions.getColName());
 
@@ -189,12 +192,12 @@ public final class OfficeIoFactory {
      * @param cells
      * @param subRow
      */
-    private void buildSubTitle(Workbook workbook,Sheet sheet, CellOptions[] cells, Row subRow) {
+    private void buildSubTitle(Workbook workbook, Sheet sheet, CellOptions[] cells, Row subRow) {
         for (int titleIndex = 0, xlsCellIndex = 0; titleIndex < cells.length; titleIndex++) {
             if (cells[titleIndex].getSubCells() != null) {
                 for (int subTitleIndex = 0; subTitleIndex < cells[titleIndex].getSubCells().length; subTitleIndex++) {
                     CellOptions thisCellsOptions = cells[titleIndex].getSubCells()[subTitleIndex];
-                    Cell subTitleCell = createTitleCell(workbook,subRow, xlsCellIndex, thisCellsOptions);
+                    Cell subTitleCell = createTitleCell(workbook, subRow, xlsCellIndex, thisCellsOptions);
                     subTitleCell.setCellValue(thisCellsOptions.getColName());
                     xlsCellIndex++;
                 }
@@ -212,14 +215,13 @@ public final class OfficeIoFactory {
     }
 
     /**
-     *
      * @param workbook
      * @param hasSubTitle
      * @param result
      * @param thisSheetOptions
      * @param sheet
      */
-    private void buildDemoDataList(Workbook workbook,boolean hasSubTitle, OfficeIoResult result, SheetOptions thisSheetOptions, Sheet sheet) {
+    private void buildDemoDataList(Workbook workbook, boolean hasSubTitle, OfficeIoResult result, SheetOptions thisSheetOptions, Sheet sheet) {
 
         CellStyle dateStyle = result.getResultWorkbook().createCellStyle();
         CreationHelper createHelper = result.getResultWorkbook().getCreationHelper();
@@ -239,7 +241,7 @@ public final class OfficeIoFactory {
                 CellOptions thisCellOptions = cells[cellIndex];
                 if (thisCellOptions.getSubCells() == null) {
                     //构建一个CELL
-                    Cell cell = createDataCell(workbook,row, xlsCellIndex, thisCellOptions);
+                    Cell cell = createDataCell(workbook, row, xlsCellIndex, thisCellOptions);
                     try {
                         setCellDataValue(sheet, cell, thisCellOptions, demoIndex + startRowIndex, xlsCellIndex, null, dateStyle);
                     } catch (Exception e) {
@@ -251,7 +253,7 @@ public final class OfficeIoFactory {
                     for (int subIndex = 0; subIndex < cells[cellIndex].getSubCells().length; subIndex++) {
                         CellOptions thisSubCellOptions = cells[cellIndex].getSubCells()[subIndex];
                         // 构建一个CELL
-                        Cell cell = createDataCell(workbook,row, xlsCellIndex, thisSubCellOptions);
+                        Cell cell = createDataCell(workbook, row, xlsCellIndex, thisSubCellOptions);
                         try {
                             setCellDataValue(sheet, cell, thisSubCellOptions, demoIndex + startRowIndex, xlsCellIndex, null, dateStyle);
                         } catch (Exception e) {
@@ -275,7 +277,7 @@ public final class OfficeIoFactory {
      * @param sheetIndex
      * @return
      */
-    private long buildDataList(Workbook workbook,boolean hasSubTitle, SheetOptions thisSheetOptions, OfficeIoResult result, Sheet sheet, Integer sheetIndex) {
+    private long buildDataList(Workbook workbook, boolean hasSubTitle, SheetOptions thisSheetOptions, OfficeIoResult result, Sheet sheet, Integer sheetIndex) {
 
         CellStyle dateStyle = result.getResultWorkbook().createCellStyle();
         CreationHelper createHelper = result.getResultWorkbook().getCreationHelper();
@@ -305,12 +307,12 @@ public final class OfficeIoFactory {
 
                     if (cells[cellIndex].getSubCells() == null) {
                         //构建一个CELL
-                        Cell cell = createDataCell(workbook,row, xlsCellIndex, thisCellOptions);
+                        Cell cell = createDataCell(workbook, row, xlsCellIndex, thisCellOptions);
                         //写入内容
                         try {
                             setCellDataValue(sheet, cell, thisCellOptions, dataIndex + startRowIndex, xlsCellIndex, bean, dateStyle);
                         } catch (Exception e) {
-                            recordSetCellDataValueException(result,row,sheetIndex,dataIndex,cellIndex,thisCellOptions,e);
+                            recordSetCellDataValueException(result, row, sheetIndex, dataIndex, cellIndex, thisCellOptions, e);
                             continue rowLoop;
                         }
                         xlsCellIndex++;
@@ -318,12 +320,12 @@ public final class OfficeIoFactory {
                         for (int subIndex = 0; subIndex < cells[cellIndex].getSubCells().length; subIndex++) {
                             CellOptions thisSubCellOptions = cells[cellIndex].getSubCells()[subIndex];
                             //构建一个CELL
-                            Cell cell = createDataCell(workbook,row, xlsCellIndex, thisSubCellOptions);
+                            Cell cell = createDataCell(workbook, row, xlsCellIndex, thisSubCellOptions);
                             //写入内容
                             try {
                                 setCellDataValue(sheet, cell, thisSubCellOptions, dataIndex + startRowIndex, xlsCellIndex, bean, dateStyle);
                             } catch (Exception e) {
-                                recordSetCellDataValueException(result,row,sheetIndex,dataIndex,cellIndex,thisCellOptions,e);
+                                recordSetCellDataValueException(result, row, sheetIndex, dataIndex, cellIndex, thisCellOptions, e);
                                 continue rowLoop;
                             }
                             xlsCellIndex++;
@@ -357,9 +359,9 @@ public final class OfficeIoFactory {
 
             //创建sheet
             Sheet sheet = result.getResultWorkbook().createSheet(thisSheetOptions.getSheetName());
-            boolean hasSubTitle = buildTitle(result.getResultWorkbook(),sheet, cells);
+            boolean hasSubTitle = buildTitle(result.getResultWorkbook(), sheet, cells);
 
-            result.getResultTotal()[sheetIndex] = buildDataList(result.getResultWorkbook(),hasSubTitle, thisSheetOptions, result, sheet, sheetIndex);
+            result.getResultTotal()[sheetIndex] = buildDataList(result.getResultWorkbook(), hasSubTitle, thisSheetOptions, result, sheet, sheetIndex);
         }
 
         return result;
@@ -520,7 +522,7 @@ public final class OfficeIoFactory {
      * @date: 2014年6月11日 上午11:17:50
      * @Description: 按sheetOptions读取workbook中的数据
      */
-    private OfficeIoResult loadWorkbook(Workbook wb, SheetOptions[] sheets){
+    private OfficeIoResult loadWorkbook(Workbook wb, SheetOptions[] sheets) {
 
         OfficeIoResult result = new OfficeIoResult(sheets);
 
@@ -541,17 +543,17 @@ public final class OfficeIoFactory {
         for (int sheetIndex = 0; sheetIndex < sheets.length; sheetIndex++) {
             SheetOptions thisSheetOptions = sheets[sheetIndex];
             // reSet sheetSeq
-            if (thisSheetOptions.getSheetSeq() == null){
+            if (thisSheetOptions.getSheetSeq() == null) {
                 thisSheetOptions.setSheetSeq(sheetIndex);
             }
             // 对每张表中的列进行读取处理
             CellOptions[] cells = thisSheetOptions.getCellOptions();
 
             // checkSkipRow
-            if (thisSheetOptions.getSkipRows() == null){
+            if (thisSheetOptions.getSkipRows() == null) {
                 thisSheetOptions.setSkipRows(1);
-                for (CellOptions cellOptions: cells) {
-                    if (cellOptions.getSubCells() != null){
+                for (CellOptions cellOptions : cells) {
+                    if (cellOptions.getSubCells() != null) {
                         thisSheetOptions.setSkipRows(2);
                         break;
                     }
@@ -598,7 +600,7 @@ public final class OfficeIoFactory {
                         if (cell != null) {
                             Object obj;
                             // 处理合并单元合问题
-                            if (cells[cellIndex].getSubCells() != null){
+                            if (cells[cellIndex].getSubCells() != null) {
                                 CellOptions[] subCells = cells[cellIndex].getSubCells();
                                 for (int subCellIndex = 0; subCellIndex < subCells.length; subCellIndex++) {
                                     cell = activeRow.getCell(excelCellIndex);
@@ -610,7 +612,7 @@ public final class OfficeIoFactory {
                                     BeanUtils.invokeSetter(resultObj, subCells[subCellIndex].getKey(), obj);
                                     excelCellIndex++;
                                 }
-                            }else {
+                            } else {
                                 obj = getCellValue(cell, cells[cellIndex], wb);
                                 //判断规则
                                 if (!checkRule(cells, cellIndex, obj, result, sheetIndex, activeRow)) {
@@ -669,9 +671,9 @@ public final class OfficeIoFactory {
                     break;
                 case NUMERIC:
                     cellValue = String.valueOf(cell.getNumericCellValue());
-                    if (HSSFDateUtil.isCellDateFormatted(cell)){
-                        cellValue = CellDataConverter.date2Str(HSSFDateUtil.getJavaDate(cell.getNumericCellValue()),CellDataConverter.DATE_FORMAT_DAY);
-                    }else {
+                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
+                        cellValue = CellDataConverter.date2Str(HSSFDateUtil.getJavaDate(cell.getNumericCellValue()), CellDataConverter.DATE_FORMAT_DAY);
+                    } else {
                         cellValue = CellDataConverter.scientificNotation(cellValue);
                     }
                     break;
@@ -689,13 +691,13 @@ public final class OfficeIoFactory {
                         // TODO 后继处理
                         return "";
                     case VARCHAR:
-                        if (cell.getCellTypeEnum() == CellType.NUMERIC){
+                        if (cell.getCellTypeEnum() == CellType.NUMERIC) {
                             cellValue = CellDataConverter.matchNumber2Varchar(cellValue);
                         }
                         return cellValue;
                     case NUMBER:
                         try {
-                            if (cellValue != null && !"".equals(cellValue)){
+                            if (cellValue != null && !"".equals(cellValue)) {
                                 return new BigDecimal(cellValue);
                             }
                         } catch (Exception e) {
@@ -704,7 +706,7 @@ public final class OfficeIoFactory {
 //                            throw new XSSFCellTypeException("Cell Type error,Can not read this CellValue: " + e.getMessage());
                         }
                     case DATE:
-                        if (cellValue != null && !"".equals(cellValue)){
+                        if (cellValue != null && !"".equals(cellValue)) {
                             return CellDataConverter.str2Date(cellValue);
                         }
                     case FORMULA:
@@ -746,7 +748,7 @@ public final class OfficeIoFactory {
      * @date: 2014年6月11日 下午4:47:09
      * @Description: 取出CELL所对应的值
      */
-    private String getValue(CellOptions cellOptions, Object bean){
+    private String getValue(CellOptions cellOptions, Object bean) {
         //如果有静态值，直接返回
         if (cellOptions.getHasStaticValue()) {
             return cellOptions.getStaticValue();
@@ -754,12 +756,12 @@ public final class OfficeIoFactory {
 
         Object returnObj = null;
         returnObj = BeanUtils.invokeGetter(bean, cellOptions.getKey());
-        if (cellOptions.getSelect()){
-            return cellOptions.getCellSelectRealValue(returnObj.toString());
+        if (cellOptions.getSelect()) {
+//            return cellOptions.getCellSelectRealValue(returnObj.toString());
         }
 
         if (returnObj instanceof Date) {
-            returnObj = CellDataConverter.date2Str((Date) returnObj,CellDataConverter.DATE_FORMAT_SEC);
+            returnObj = CellDataConverter.date2Str((Date) returnObj, CellDataConverter.DATE_FORMAT_SEC);
         }
 
         //处理固定数据
@@ -775,33 +777,31 @@ public final class OfficeIoFactory {
     }
 
     /**
-     *
      * @param workbook
      * @param row
      * @param xlsCellIndex
      * @param cellOptions
      * @return
      */
-    private Cell createTitleCell(Workbook workbook,Row row, int xlsCellIndex, CellOptions cellOptions) {
+    private Cell createTitleCell(Workbook workbook, Row row, int xlsCellIndex, CellOptions cellOptions) {
         // 构建一个CELL
         Cell cell = row.createCell(xlsCellIndex);
         // 设置CELL为文本格式
         cell.setCellType(STRING);
 
-        cell.setCellStyle(getCellStyle(workbook,cellOptions,true));
+        cell.setCellStyle(getCellStyle(workbook, cellOptions, true));
 
         return cell;
     }
 
     /**
-     *
      * @param workbook
      * @param row
      * @param xlsCellIndex
      * @param cellOptions
      * @return
      */
-    private Cell createDataCell(Workbook workbook,Row row, int xlsCellIndex, CellOptions cellOptions) {
+    private Cell createDataCell(Workbook workbook, Row row, int xlsCellIndex, CellOptions cellOptions) {
         // 构建一个CELL
         Cell cell = row.createCell(xlsCellIndex);
         // 设置CELL格式
@@ -815,12 +815,11 @@ public final class OfficeIoFactory {
                     break;
             }
         }
-        cell.setCellStyle(getCellStyle(workbook,cellOptions,false));
+        cell.setCellStyle(getCellStyle(workbook, cellOptions, false));
         return cell;
     }
 
     /**
-     *
      * @param sheet
      * @param cell
      * @param cellOptions
@@ -837,15 +836,9 @@ public final class OfficeIoFactory {
         //写入内容
         if (cellOptions.getHasStaticValue()) {
             cell.setCellValue(cellOptions.getStaticValue());
-        } else if (cellOptions.getSelect()) {
-            XSSFDataValidationHelper dvHelper = new XSSFDataValidationHelper((XSSFSheet) sheet);
-            XSSFDataValidationConstraint dvConstraint = (XSSFDataValidationConstraint) dvHelper.createExplicitListConstraint(cellOptions.getSelectArray());
-            CellRangeAddressList addressList = new CellRangeAddressList(rowIndex, rowIndex, xlsCellIndex, xlsCellIndex);
-            XSSFDataValidation validation = (XSSFDataValidation) dvHelper.createValidation(dvConstraint, addressList);
-            // 07默认setSuppressDropDownArrow(true);
-            validation.setSuppressDropDownArrow(true);
-            validation.setShowErrorBox(true);
-            sheet.addValidationData(validation);
+        }
+        if (cellOptions.getSelect()) {
+            setSelectDataValidation(sheet,cellOptions.getKey() + "_TEXT",rowIndex,xlsCellIndex);
         }
 
         if (dataBean != null) {
@@ -869,17 +862,16 @@ public final class OfficeIoFactory {
     }
 
     /**
-     *
      * @param workbook
      * @param cellOptions
      * @param isTitle
      * @return
      */
-    private CellStyle getCellStyle(Workbook workbook,CellOptions cellOptions,boolean isTitle){
+    private CellStyle getCellStyle(Workbook workbook, CellOptions cellOptions, boolean isTitle) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
-        try{
-            if (!isTitle){
+        try {
+            if (!isTitle) {
                 style.setFillForegroundColor(cellOptions.getCellStyleOptions().getDataForegroundColor());
                 style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
                 style.setBorderRight(cellOptions.getCellStyleOptions().getDataBorder()[0]);
@@ -907,7 +899,7 @@ public final class OfficeIoFactory {
                 font.setFontHeightInPoints(cellOptions.getCellStyleOptions().getTitleSize());
                 style.setFont(font);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn(e.getMessage());
         }
         return style;
@@ -915,6 +907,7 @@ public final class OfficeIoFactory {
 
     /**
      * 统一处理异常
+     *
      * @param result
      * @param row
      * @param sheetIndex
@@ -923,8 +916,8 @@ public final class OfficeIoFactory {
      * @param thisCellOptions
      * @param e
      */
-    private void recordSetCellDataValueException(OfficeIoResult result, Row row, Integer sheetIndex, int dataIndex, int cellIndex, CellOptions thisCellOptions,Exception e){
-        try{
+    private void recordSetCellDataValueException(OfficeIoResult result, Row row, Integer sheetIndex, int dataIndex, int cellIndex, CellOptions thisCellOptions, Exception e) {
+        try {
             throw e;
         } catch (IllegalArgumentException illegalArgumentException) {
             result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据异常(数据类型转换导致)", "跳过行处理", false));
@@ -942,5 +935,119 @@ public final class OfficeIoFactory {
             result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
             result.addErrorRecordRow(sheetIndex, row);
         }
+    }
+
+    private void createHideSelectSheet(Workbook workbook, SheetOptions sheetOptions, int index) {
+        Sheet selectTextSheet = workbook.createSheet("select" + "_" + index + "_Text");
+        Sheet selectValueSheet = workbook.createSheet("select" + "_" + index + "_Value");
+
+        CellOptions[] cellOptions = sheetOptions.getCellOptions();
+        int selectRowIndex = 0;
+        for (CellOptions thisCell : cellOptions) {
+            if (thisCell.getSubCells() != null) {
+                for (CellOptions subCell : thisCell.getSubCells()) {
+                    if (subCell.getSelect()) {
+                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell);
+                        createSelectNameList(selectTextSheet.getSheetName(), workbook, subCell.getKey() + "_TEXT", selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
+                        selectRowIndex++;
+                    }
+                }
+            } else {
+                if (thisCell.getSelect()) {
+                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell);
+                    createSelectNameList(selectTextSheet.getSheetName(), workbook, thisCell.getKey() + "_TEXT", selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
+                    selectRowIndex++;
+                }
+            }
+        }
+
+        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Text"), false);
+        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Value"), false);
+    }
+
+    private void createSelectRow(Row currentRow, String[] textList) {
+        if (textList != null && textList.length > 0) {
+            int i = 0;
+            for (String cellValue : textList) {
+                Cell cell = currentRow.createCell(i++);
+                cell.setCellValue(cellValue);
+            }
+        }
+    }
+
+    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, CellOptions cellOptions) {
+        createSelectRow(selectTextSheet.createRow(selectRowIndex), cellOptions.getSelectTextList());
+        createSelectRow(selectValueSheet.createRow(selectRowIndex), cellOptions.getSelectValueList());
+    }
+
+    private void createSelectNameList(String sheetName, Workbook workbook, String nameCode, int order, int size, boolean cascadeFlag) {
+        Name name;
+        name = workbook.createName();
+        name.setNameName(nameCode);
+        name.setRefersToFormula(sheetName + "!" + createSelectFormula(order + 1, size, cascadeFlag));
+    }
+
+    private static String createSelectFormula(int order, int size, boolean cascadeFlag) {
+        char start = 'A';
+        if (cascadeFlag) {
+            start = 'B';
+            if (size <= 25) {
+                char end = (char) (start + size - 1);
+                return "$" + start + "$" + order + ":$" + end + "$" + order;
+            } else {
+                char endPrefix = 'A';
+                char endSuffix = 'A';
+                //26-51之间，包括边界（仅两次字母表计算）
+                if ((size - 25) / 26 == 0 || size == 51) {
+                    //边界值
+                    if ((size - 25) % 26 == 0) {
+                        endSuffix = (char) ('A' + 25);
+                    } else {
+                        endSuffix = (char) ('A' + (size - 25) % 26 - 1);
+                    }
+                    //51以上
+                } else {
+                    if ((size - 25) % 26 == 0) {
+                        endSuffix = (char) ('A' + 25);
+                        endPrefix = (char) (endPrefix + (size - 25) / 26 - 1);
+                    } else {
+                        endSuffix = (char) ('A' + (size - 25) % 26 - 1);
+                        endPrefix = (char) (endPrefix + (size - 25) / 26);
+                    }
+                }
+                return "$" + start + "$" + order + ":$" + endPrefix + endSuffix + "$" + order;
+            }
+        } else {
+            if (size <= 26) {
+                char end = (char) (start + size - 1);
+                return "$" + start + "$" + order + ":$" + end + "$" + order;
+            } else {
+                char endPrefix = 'A';
+                char endSuffix = 'A';
+                if (size % 26 == 0) {
+                    endSuffix = (char) ('A' + 25);
+                    if (size > 52 && size / 26 > 0) {
+                        endPrefix = (char) (endPrefix + size / 26 - 2);
+                    }
+                } else {
+                    endSuffix = (char) ('A' + size % 26 - 1);
+                    if (size > 52 && size / 26 > 0) {
+                        endPrefix = (char) (endPrefix + size / 26 - 1);
+                    }
+                }
+                return "$" + start + "$" + order + ":$" + endPrefix + endSuffix + "$" + order;
+            }
+        }
+    }
+
+    private void setSelectDataValidation(Sheet sheet,String formulaString,int rowIndex,int xlsCellIndex) {
+        sheet.addValidationData(getDataValidationByFormula(sheet,formulaString, rowIndex, xlsCellIndex));
+    }
+
+    private static DataValidation getDataValidationByFormula(Sheet sheet,String formulaString, int naturalRowIndex, int naturalColumnIndex) {
+        XSSFDataValidationHelper dvHelper = new XSSFDataValidationHelper((XSSFSheet) sheet);
+        XSSFDataValidationConstraint  dvConstraint = (XSSFDataValidationConstraint) dvHelper.createFormulaListConstraint(sheet.getWorkbook().getName(formulaString).getRefersToFormula());
+        CellRangeAddressList addressList = new CellRangeAddressList(naturalRowIndex, naturalRowIndex, naturalColumnIndex, naturalColumnIndex);
+        return dvHelper.createValidation(dvConstraint, addressList);
     }
 }

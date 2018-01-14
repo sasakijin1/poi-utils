@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * The type Cell options.
+ *
+ * @author wujinglei
  * @ClassName: CellOptions
  * @Description: 单元格设置
- * @author wujinglei
  * @date 2014年6月10日 下午3:15:07
- *
  */
 public final class CellOptions {
 	
@@ -70,13 +71,15 @@ public final class CellOptions {
 	private CellOptions(){
 		
 	}
-	
+
 	/**
+	 * Instantiates a new Cell options.
+	 *
+	 * @param key     :属性名
+	 * @param colName :列名
 	 * @author: wujinglei
 	 * @date: 2014年6月10日 下午5:08:32
 	 * @Description:设置关键字与显示列名
-	 * @param key:属性名
-	 * @param colName:列名
 	 */
 	public CellOptions(String key,String colName){
 		this.key = key;
@@ -84,6 +87,13 @@ public final class CellOptions {
 		this.cellStyleOptions = new CellStyleOptions();
 	}
 
+	/**
+	 * Instantiates a new Cell options.
+	 *
+	 * @param key          the key
+	 * @param colName      the col name
+	 * @param styleOptions the style options
+	 */
 	public CellOptions(String key,String colName,CellStyleOptions styleOptions){
 		this.key = key;
 		this.colName = colName;
@@ -91,6 +101,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets key.
+	 *
 	 * @return the key
 	 */
 	public String getKey() {
@@ -98,6 +110,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets col name.
+	 *
 	 * @return the colName
 	 */
 	public String getColName() {
@@ -105,6 +119,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets fixed map.
+	 *
 	 * @return the fixedMap
 	 */
 	public Map<String, Object> getFixedMap() {
@@ -112,6 +128,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets cell rule.
+	 *
 	 * @return the cellRule
 	 */
 	public CellRule getCellRule() {
@@ -128,6 +146,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets static value.
+	 *
 	 * @return the staticValue
 	 */
 	public String getStaticValue() {
@@ -135,6 +155,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets cell rule value.
+	 *
 	 * @return the cellRuleValue
 	 */
 	public Object getCellRuleValue() {
@@ -142,6 +164,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Get sub cells cell options [ ].
+	 *
 	 * @return the subCells
 	 */
 	public CellOptions[] getSubCells() {
@@ -149,6 +173,8 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Is keep input boolean.
+	 *
 	 * @return the isKeepInput
 	 */
 	public boolean isKeepInput() {
@@ -156,18 +182,22 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Gets cell data type.
+	 *
 	 * @return the cellDataType
 	 */
 	public CellDataType getCellDataType() {
 		return cellDataType;
 	}
-	
+
 	/**
+	 * Add cell data type cell options.
+	 *
+	 * @param cellDataType the cell data type
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:49:06
-	 * @Description: 设置读取XLS单元格数据类型，按设置类型读取，出错时记录异常，跳过添加数据
-	 * @param cellDataType
-	 * @return
+	 * @date: 2014 -8-13 下午5:49:06
+	 * @Description: 设置读取XLS单元格数据类型 ，按设置类型读取，出错时记录异常，跳过添加数据
 	 */
 	public CellOptions addCellDataType(CellDataType cellDataType) {
 		this.cellDataType = cellDataType;
@@ -176,12 +206,14 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Add cell data type cell options.
+	 *
+	 * @param cellDataType the cell data type
+	 * @param isKeepInput  the is keep input
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:50:25
-	 * @Description: 设置读取XLS单元格数据类型，按设置类型读取，出错时记录异常，按设置是否跳过添加数据
-	 * @param cellDataType
-	 * @param isKeepInput
-	 * @return
+	 * @date: 2014 -8-13 下午5:50:25
+	 * @Description: 设置读取XLS单元格数据类型 ，按设置类型读取，出错时记录异常，按设置是否跳过添加数据
 	 */
 	public CellOptions addCellDataType(CellDataType cellDataType,boolean isKeepInput) {
 		this.cellDataType = cellDataType;
@@ -190,13 +222,15 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Add cell rule cell options.
+	 *
+	 * @param cellRule      the cell rule
+	 * @param cellRuleValue the cell rule value
+	 * @param isKeepInput   the is keep input
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:50:43
+	 * @date: 2014 -8-13 下午5:50:43
 	 * @Description: 添加CELL规则功能
-	 * @param cellRule
-	 * @param cellRuleValue
-	 * @param isKeepInput
-	 * @return
 	 */
 	public CellOptions addCellRule(CellRule cellRule,Object cellRuleValue,boolean isKeepInput) {
 		this.cellRule = cellRule;
@@ -206,11 +240,13 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Add fixed map cell options.
+	 *
+	 * @param fixedMap the fixed map
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:51:17
+	 * @date: 2014 -8-13 下午5:51:17
 	 * @Description: 添加固定项
-	 * @param fixedMap
-	 * @return
 	 */
 	public CellOptions addFixedMap(Map<String, Object> fixedMap) {
 		this.isFixedValue = true;
@@ -219,11 +255,13 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Add static value cell options.
+	 *
+	 * @param staticValue the static value
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:51:31
+	 * @date: 2014 -8-13 下午5:51:31
 	 * @Description: 添加静态项
-	 * @param staticValue
-	 * @return
 	 */
 	public CellOptions addStaticValue(String staticValue) {
 		this.hasStaticValue = true;
@@ -231,6 +269,14 @@ public final class CellOptions {
 		return this;
 	}
 
+	/**
+	 * Add cell select cell options.
+	 *
+	 * @param key        the key
+	 * @param name       the name
+	 * @param selectList the select list
+	 * @return the cell options
+	 */
 	public CellOptions addCellSelect(String key,String name,List selectList){
 		this.isSelect = true;
 		this.cellSelect = new CellSelect(key,name,selectList);
@@ -238,6 +284,12 @@ public final class CellOptions {
 		return this;
 	}
 
+	/**
+	 * Add cell select cell options.
+	 *
+	 * @param map the map
+	 * @return the cell options
+	 */
 	public CellOptions addCellSelect(Map map){
 		this.isSelect = true;
 		this.cellSelect = new CellSelect(map);
@@ -246,42 +298,79 @@ public final class CellOptions {
 	}
 
 	/**
+	 * Add sub cells cell options.
+	 *
+	 * @param subCells the sub cells
+	 * @return cell options
 	 * @author: wujinglei
-	 * @date: 2014-8-13 下午5:51:42
+	 * @date: 2014 -8-13 下午5:51:42
 	 * @Description: 添加子项
-	 * @param subCells
-	 * @return
 	 */
 	public CellOptions addSubCells(CellOptions[] subCells) {
 		this.subCells = subCells;
 		return this;
 	}
 
+	/**
+	 * Gets fixed value.
+	 *
+	 * @return the fixed value
+	 */
 	public Boolean getFixedValue() {
 		return isFixedValue;
 	}
 
+	/**
+	 * Gets has static value.
+	 *
+	 * @return the has static value
+	 */
 	public Boolean getHasStaticValue() {
 		return hasStaticValue;
 	}
 
+	/**
+	 * Gets select.
+	 *
+	 * @return the select
+	 */
 	public Boolean getSelect() {
 		return isSelect;
 	}
 
-	public String[] getSelectArray() {
-		return cellSelect.getSelectArray();
-	}
-
-	public String getCellSelectValue(String key){
-		return cellSelect.getValue(key);
-	}
-
-	public String getCellSelectRealValue(String key){
-		return cellSelect.getRealValue(key);
-	}
-
+	/**
+	 * Gets cell style options.
+	 *
+	 * @return the cell style options
+	 */
 	public CellStyleOptions getCellStyleOptions() {
 		return cellStyleOptions;
+	}
+
+	/**
+	 * Get select text list string [ ].
+	 *
+	 * @return the string [ ]
+	 */
+	public String[] getSelectTextList(){
+		return cellSelect.getSelectText();
+	}
+
+	/**
+	 * Get select value list string [ ].
+	 *
+	 * @return the string [ ]
+	 */
+	public String[] getSelectValueList(){
+		return cellSelect.getSelectValue();
+	}
+
+	/**
+	 * Get select cascade flag boolean.
+	 *
+	 * @return the boolean
+	 */
+	public Boolean getSelectCascadeFlag(){
+		return cellSelect.getCascadeFlag();
 	}
 }

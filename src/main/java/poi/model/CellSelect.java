@@ -134,8 +134,8 @@ public class CellSelect {
             Set<String> keys = map.keySet();
             int index = 0;
             for (String key : keys) {
-                this.selectText[index] = key;
-                this.selectValue[index] = (String) map.get(key);
+                this.selectText[index] = (String) map.get(key);
+                this.selectValue[index] = key;
                 index++;
             }
         }
