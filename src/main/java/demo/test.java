@@ -96,7 +96,7 @@ public class test {
                             new CellOptions("dayFormat","格式日期")
                         }
                 ),
-                new CellOptions("select","下拉").addCellSelect(aa),
+                new CellOptions("select","下拉").addCellSelect(null),
                 new CellOptions("amountStr","金额文字"),
                 new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
                 new CellOptions("status","状态").addCellSelect(transactStatusFixed)

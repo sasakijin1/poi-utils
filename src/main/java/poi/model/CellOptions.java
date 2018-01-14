@@ -278,9 +278,11 @@ public final class CellOptions {
 	 * @return the cell options
 	 */
 	public CellOptions addCellSelect(String key,String name,List selectList){
-		this.isSelect = true;
-		this.cellSelect = new CellSelect(key,name,selectList);
-		this.addCellDataType(CellDataType.SELECT);
+		if (selectList != null && !selectList.isEmpty()) {
+			this.isSelect = true;
+			this.cellSelect = new CellSelect(key, name, selectList);
+			this.addCellDataType(CellDataType.SELECT);
+		}
 		return this;
 	}
 
@@ -291,9 +293,11 @@ public final class CellOptions {
 	 * @return the cell options
 	 */
 	public CellOptions addCellSelect(Map map){
-		this.isSelect = true;
-		this.cellSelect = new CellSelect(map);
-		this.addCellDataType(CellDataType.SELECT);
+		if (map != null && !map.isEmpty()){
+			this.isSelect = true;
+			this.cellSelect = new CellSelect(map);
+			this.addCellDataType(CellDataType.SELECT);
+		}
 		return this;
 	}
 
