@@ -13,7 +13,6 @@ public enum CellDataType {
 	VARCHAR("varchar"),
 	NUMBER("number"),
 	DATE("date"),
-	TIMESTAMP("timestamp"),
 	SELECT("select"),
 	FORMULA("formula");
 	

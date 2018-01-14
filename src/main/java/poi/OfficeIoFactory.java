@@ -1,6 +1,5 @@
 package poi;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -14,18 +13,17 @@ import org.apache.poi.xssf.usermodel.XSSFDataValidationHelper;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import poi.exception.GetCellValueRunTimeException;
 import poi.exception.XSSFCellTypeException;
 import poi.model.CellDataType;
 import poi.model.CellOptions;
 import poi.model.ErrorRecord;
 import poi.model.SheetOptions;
+import poi.utils.BeanUtils;
+import poi.utils.CellDataConverter;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -33,6 +31,8 @@ import java.util.*;
 import static org.apache.poi.ss.usermodel.CellType.STRING;
 
 /**
+ * The type Office io factory.
+ *
  * @author wujinglei
  * @ClassName: OfficeIOFactory
  * @Description: OfficeIOFactory
@@ -42,29 +42,14 @@ public final class OfficeIoFactory {
 
     private final static Logger log = LoggerFactory.getLogger(OfficeIoFactory.class);
 
-    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    private final SimpleDateFormat cstDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-
-    private SimpleDateFormat longDateFormat = new SimpleDateFormat("yyyy-mm-dd");
-
-    private SimpleDateFormat shortDateFormat = new SimpleDateFormat("yyyy/mm/dd");
-
-    private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
-
-    static {
-        NUMBER_FORMAT.setGroupingUsed(false);
-    }
-
-    private final DecimalFormat decimalFormat = new DecimalFormat("0");
-
-
     /**
-     * @param sheets
-     * @param errRecordRows
-     * @return
+     * Export xlsx error record office io result.
+     *
+     * @param sheets        the sheets
+     * @param errRecordRows the err record rows
+     * @return office io result
      * @author: wujinglei
-     * @date: 2014-6-20 下午2:22:31
+     * @date: 2014 -6-20 下午2:22:31
      * @Description: 导出errorRecord记录
      */
     protected final OfficeIoResult exportXlsxErrorRecord(SheetOptions[] sheets, Map<Integer, List> errRecordRows) {
@@ -129,13 +114,15 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * @param sheetOptionsArray
-     * @return
+     * Export xlsx template office io result.
+     *
+     * @param sheetOptionsArray the sheet options array
+     * @return office io result
      * @author: wujinglei
      * @date: 2014年6月12日 上午11:41:37
      * @Description: 导出模板
      */
-    protected final OfficeIoResult exportXlsxTempalet(SheetOptions[] sheetOptionsArray) {
+    protected final OfficeIoResult exportXlsxTemplate(SheetOptions[] sheetOptionsArray) {
         // 实例化返回对象
         OfficeIoResult result = new OfficeIoResult(sheetOptionsArray);
         // 循环构建sheet
@@ -352,36 +339,10 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * 导出版本为97-03版本的 未测试，不一定能用
+     * Export xlsx office io result.
      *
-     * @param sheetOptionsArray
-     * @return
-     * @author wujinglei
-     * @date:2016-11-04
-     */
-    @Deprecated
-    protected final OfficeIoResult exportXls(SheetOptions[] sheetOptionsArray) {
-        //实例化返回对象
-        OfficeIoResult result = new OfficeIoResult(sheetOptionsArray);
-        //循环构建sheet
-        for (int sheetIndex = 0; sheetIndex < sheetOptionsArray.length; sheetIndex++) {
-            SheetOptions thisSheetOptions = sheetOptionsArray[sheetIndex];
-            CellOptions[] cells = thisSheetOptions.getCellOptions();
-            //创建sheet
-            Sheet sheet = result.getResultWorkbook().createSheet(thisSheetOptions.getSheetName());
-
-            boolean hasSubTitle = buildTitle(result.getResultWorkbook(),sheet, cells);
-            //将成功条数放入result中
-            result.getResultTotal()[sheetIndex] = buildDataList(result.getResultWorkbook(),hasSubTitle, thisSheetOptions, result, sheet, sheetIndex);
-        }
-
-        return result;
-
-    }
-
-    /**
-     * @param sheetOptionsArray
-     * @return
+     * @param sheetOptionsArray the sheet options array
+     * @return office io result
      * @Description:导出
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:01:54
@@ -399,22 +360,24 @@ public final class OfficeIoFactory {
             boolean hasSubTitle = buildTitle(result.getResultWorkbook(),sheet, cells);
 
             result.getResultTotal()[sheetIndex] = buildDataList(result.getResultWorkbook(),hasSubTitle, thisSheetOptions, result, sheet, sheetIndex);
-            ;
         }
 
         return result;
     }
 
     /**
-     * @param file
-     * @param sheets
-     * @return
-     * @throws Exception
+     * Import xlsx office io result.
+     *
+     * @param file   the file
+     * @param sheets the sheets
+     * @return office io result
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
      * @Description: 导入XLSX
      */
-    protected final OfficeIoResult importXlsx(File file, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+    protected final OfficeIoResult importXlsx(File file, SheetOptions[] sheets) {
         // 按文件取出工作簿
         Workbook wb = null;
         try {
@@ -430,15 +393,18 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * @param inputStream
-     * @param sheets
-     * @return
-     * @throws Exception
+     * Import xlsx office io result.
+     *
+     * @param inputStream the input stream
+     * @param sheets      the sheets
+     * @return office io result
+     * @throws InvocationTargetException the invocation target exception
+     * @throws IllegalAccessException    the illegal access exception
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
      * @Description: 导入XLS
      */
-    protected final OfficeIoResult importXlsx(InputStream inputStream, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+    protected final OfficeIoResult importXlsx(InputStream inputStream, SheetOptions[] sheets) {
         // 按文件取出工作簿
         Workbook wb = null;
         try {
@@ -554,7 +520,7 @@ public final class OfficeIoFactory {
      * @date: 2014年6月11日 上午11:17:50
      * @Description: 按sheetOptions读取workbook中的数据
      */
-    private OfficeIoResult loadWorkbook(Workbook wb, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+    private OfficeIoResult loadWorkbook(Workbook wb, SheetOptions[] sheets){
 
         OfficeIoResult result = new OfficeIoResult(sheets);
 
@@ -574,6 +540,23 @@ public final class OfficeIoFactory {
 
         for (int sheetIndex = 0; sheetIndex < sheets.length; sheetIndex++) {
             SheetOptions thisSheetOptions = sheets[sheetIndex];
+            // reSet sheetSeq
+            if (thisSheetOptions.getSheetSeq() == null){
+                thisSheetOptions.setSheetSeq(sheetIndex);
+            }
+            // 对每张表中的列进行读取处理
+            CellOptions[] cells = thisSheetOptions.getCellOptions();
+
+            // checkSkipRow
+            if (thisSheetOptions.getSkipRows() == null){
+                thisSheetOptions.setSkipRows(1);
+                for (CellOptions cellOptions: cells) {
+                    if (cellOptions.getSubCells() != null){
+                        thisSheetOptions.setSkipRows(2);
+                        break;
+                    }
+                }
+            }
             if (thisSheetOptions.getSheetSeq() > sheetNumbers) {
                 result.addErrorRecord(new ErrorRecord(thisSheetOptions.getSheetSeq(), "无法在文件中找到指定的sheet序号", "跳过sheet处理", true));
                 continue;
@@ -585,8 +568,7 @@ public final class OfficeIoFactory {
             int rowsNum = sheet.getLastRowNum();
             //记录读取的总数
             result.setTotalRowCount(sheetIndex, (long) (rowsNum - thisSheetOptions.getSkipRows() + 1));
-            // 对每张表中的列进行读取处理
-            CellOptions[] cells = thisSheetOptions.getCellOptions();
+
             // 循环每一行
             rowLoop:
             for (int row = 0; row <= rowsNum; row++) {
@@ -599,7 +581,7 @@ public final class OfficeIoFactory {
                 // 判断当前行记录是否有有效
                 if (activeRow != null) {
                     // 第一行的各列放在一个MAP中
-                    Object resultObj = null;
+                    Object resultObj;
                     try {
                         resultObj = thisSheetOptions.getDataClazzType().newInstance();
                     } catch (InstantiationException e) {
@@ -610,26 +592,32 @@ public final class OfficeIoFactory {
                         resultObj = new HashMap();
                     }
                     // 循环每一列按列所给的参数进行处理
+                    int excelCellIndex = 0;
                     for (int cellIndex = 0; cellIndex < cells.length; cellIndex++) {
-                        Cell cell = activeRow.getCell(cellIndex);
+                        Cell cell = activeRow.getCell(excelCellIndex);
                         if (cell != null) {
-                            try {
-                                Object obj = getCellValue(cell, cells[cellIndex], wb);
+                            Object obj;
+                            // 处理合并单元合问题
+                            if (cells[cellIndex].getSubCells() != null){
+                                CellOptions[] subCells = cells[cellIndex].getSubCells();
+                                for (int subCellIndex = 0; subCellIndex < subCells.length; subCellIndex++) {
+                                    cell = activeRow.getCell(excelCellIndex);
+                                    obj = getCellValue(cell, subCells[subCellIndex], wb);
+                                    //判断规则
+                                    if (!checkRule(cells, cellIndex + subCellIndex, obj, result, sheetIndex, activeRow)) {
+                                        continue rowLoop;
+                                    }
+                                    BeanUtils.invokeSetter(resultObj, subCells[subCellIndex].getKey(), obj);
+                                    excelCellIndex++;
+                                }
+                            }else {
+                                obj = getCellValue(cell, cells[cellIndex], wb);
                                 //判断规则
                                 if (!checkRule(cells, cellIndex, obj, result, sheetIndex, activeRow)) {
                                     continue rowLoop;
                                 }
-                                BeanUtils.setProperty(resultObj, cells[cellIndex].getKey(), obj);
-                            } catch (XSSFCellTypeException e) {
-                                //列格式读取异常时，获得列名并抛出异常
-                                result.addErrorRecord(new ErrorRecord(sheetIndex, row, cellIndex, cells[cellIndex], "当前列类型无法识别", "跳过行处理", false));
-                                result.addErrorRecordRow(sheetIndex, activeRow);
-                                if (!cells[cellIndex].isKeepInput()) {
-                                    //暂时抛出异常，但不建议这么做。后期优化
-                                    continue rowLoop;
-                                } else {
-                                    throw new GetCellValueRunTimeException(e.getMessage());
-                                }
+                                BeanUtils.invokeSetter(resultObj, cells[cellIndex].getKey(), obj);
+                                excelCellIndex++;
                             }
                         }
                     }
@@ -661,144 +649,88 @@ public final class OfficeIoFactory {
      * @date: 2014年6月11日 下午1:22:06
      * @Description: 按 options 取出列中的值
      */
-    private Object getCellValue(Cell cell, CellOptions options, Workbook wb) throws XSSFCellTypeException {
+    private Object getCellValue(Cell cell, CellOptions options, Workbook wb) {
         //如果有静态值，直接返回
         if (options != null && options.getHasStaticValue()) {
             return options.getStaticValue();
         }
 
         try {
+            String cellValue;
+            switch (cell.getCellTypeEnum()) {
+                case BLANK:
+                    cellValue = "";
+                    break;
+                case BOOLEAN:
+                    cellValue = String.valueOf(cell.getBooleanCellValue());
+                    break;
+                case FORMULA:
+                    cellValue = String.valueOf(cell.getCellFormula());
+                    break;
+                case NUMERIC:
+                    cellValue = String.valueOf(cell.getNumericCellValue());
+                    if (HSSFDateUtil.isCellDateFormatted(cell)){
+                        cellValue = CellDataConverter.date2Str(HSSFDateUtil.getJavaDate(cell.getNumericCellValue()),CellDataConverter.DATE_FORMAT_DAY);
+                    }else {
+                        cellValue = CellDataConverter.scientificNotation(cellValue);
+                    }
+                    break;
+                case STRING:
+                    cellValue = cell.getStringCellValue();
+                    break;
+                default:
+                    cellValue = null;
+                    break;
+            }
             //类型是否是自动匹配
             if (CellDataType.AUTO != options.getCellDataType()) {
                 switch (options.getCellDataType()) {
                     case SELECT:
-                        String selectKey = "";
-                        if (cell.getCellTypeEnum() == STRING) {
-                            selectKey = cell.getStringCellValue();
-                        } else {
-                            if (cell.getCellTypeEnum() != CellType.NUMERIC) {
-                                selectKey = decimalFormat.format(cell.getNumericCellValue());
-                            }
-                        }
-                        return options.getCellSelectValue(selectKey);
+                        // TODO 后继处理
+                        return "";
                     case VARCHAR:
-                        try {
-                            // 如果数字类型先获取，在转换成字符串
-                            if (cell.getCellTypeEnum() == STRING) {
-                                return cell.getStringCellValue();
-                            } else {
-                                if (cell.getCellTypeEnum() != CellType.NUMERIC) {
-                                    return decimalFormat.format(cell.getNumericCellValue());
-                                }
-                            }
-                        } catch (Exception e) {
-                            throw new XSSFCellTypeException("Cell Type error,Can not read this CellValue: " + e.getMessage());
+                        if (cell.getCellTypeEnum() == CellType.NUMERIC){
+                            cellValue = CellDataConverter.matchNumber2Varchar(cellValue);
                         }
+                        return cellValue;
                     case NUMBER:
                         try {
-                            if (cell.getCellTypeEnum() == CellType.NUMERIC) {
-                                return new BigDecimal(cell.getNumericCellValue() + "");
-                            } else {
-                                String varStr = cell.getStringCellValue();
-                                if (StringUtils.isBlank(varStr)) {
-                                    return new BigDecimal(varStr);
-                                } else {
-                                    return "";
-                                }
+                            if (cellValue != null && !"".equals(cellValue)){
+                                return new BigDecimal(cellValue);
                             }
                         } catch (Exception e) {
-                            throw new XSSFCellTypeException("Cell Type error,Can not read this CellValue: " + e.getMessage());
+                            return 0;
+//                            TODO 添加异常记录
+//                            throw new XSSFCellTypeException("Cell Type error,Can not read this CellValue: " + e.getMessage());
                         }
                     case DATE:
-                        if (STRING == cell.getCellTypeEnum()) {
-                            String cellDate = cell.getStringCellValue();
-                            Date getCellDate = dateType(cellDate);
-                            return StringUtils.isNotBlank(cell.getStringCellValue()) ? getCellDate : null;
-                        } else {
-                            return cell.getDateCellValue();
-                        }
-                    case TIMESTAMP:
-                        String varTimestamp = "";
-                        try {
-                            varTimestamp = cell.getStringCellValue();
-                        } catch (IllegalStateException e) {
-                            // 处理日期格式、时间格式
-                            if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                                Date date = cell.getDateCellValue();
-                                varTimestamp = simpleDateFormat.format(date);
-                            } else if (cell.getCellStyle().getDataFormat() == 58) {
-                                // 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)
-                                double dbValue = cell.getNumericCellValue();
-                                Date date = org.apache.poi.ss.usermodel.DateUtil.getJavaDate(dbValue);
-                                varTimestamp = simpleDateFormat.format(date);
-                            }
-                        }
-                        if (StringUtils.isBlank(varTimestamp)) {
-                            return "";
-                        } else {
-                            return varTimestamp;
+                        if (cellValue != null && !"".equals(cellValue)){
+                            return CellDataConverter.str2Date(cellValue);
                         }
                     case FORMULA:
                         if (CellType.FORMULA == cell.getCellTypeEnum()) {
                             FormulaEvaluator evaluator = wb.getCreationHelper().createFormulaEvaluator();
                             evaluator.evaluateFormulaCellEnum(cell);
-                            CellValue cellValue = evaluator.evaluate(cell);
-                            return cellValue.getNumberValue();
+                            return evaluator.evaluate(cell).getNumberValue();
                         } else {
-                            throw new XSSFCellTypeException("Cell Type error,Cell Type is not FORMULA: " + options.getKey());
+                            return "";
+//                            TODO 添加异常记录
+//                            throw new XSSFCellTypeException("Cell Type error,Cell Type is not FORMULA: " + options.getKey());
                         }
                     default:
                         return "";
-                }
-            } else {
-                switch (cell.getCellTypeEnum()) {
-                    // 字符串
-                    case STRING:
-                        String value = cell.getStringCellValue();
-                        if (StringUtils.isBlank(value)) {
-                            value = "";
-                        }
-                        if (CellDataType.DATE == options.getCellDataType() && !StringUtils.isBlank(value)) {
-                            return StringUtils.isNotBlank(cell.getStringCellValue()) ? longDateFormat.parse(cell.getStringCellValue()) : null;
-                        } else {
-                            return value;
-                        }
-                        // 数字
-                    case NUMERIC:
-                        // 处理日期格式、时间格式
-                        if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                            Date date = cell.getDateCellValue();
-                            return date;
-                        } else if (cell.getCellStyle().getDataFormat() == 58) {
-                            // 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)  
-                            double dbValue = cell.getNumericCellValue();
-                            Date date = org.apache.poi.ss.usermodel.DateUtil.getJavaDate(dbValue);
-                            return longDateFormat.format(date);
-                        } else {
-                            return new BigDecimal(NUMBER_FORMAT.format(cell.getNumericCellValue()));
-                        }
-                        //工式
-                    case FORMULA:
-                        try {
-                            FormulaEvaluator evaluator = wb.getCreationHelper().createFormulaEvaluator();
-                            evaluator.evaluateFormulaCellEnum(cell);
-                            CellValue cellValue = evaluator.evaluate(cell);
-                            return cellValue.getNumberValue();
-                        } catch (IllegalStateException e) {
-                            throw new XSSFCellTypeException("Cell Type error,Cell Type is not FORMULA: " + options.getKey());
-                        }
-                        // 空值
-                    case BLANK:
-                        return "";
-                    default:
-                        throw new XSSFCellTypeException("Cell Type error,cant read cell value: " + options.getKey());
                 }
             }
+
+            return cellValue;
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Cell Type error,cant read cell value: " + options.getKey());
-            throw new XSSFCellTypeException("Cell Type error,cant read cell value: " + options.getKey());
+            return "";
+//            TODO 添加异常记录
+//            throw new XSSFCellTypeException("Cell Type error,cant read cell value: " + options.getKey());
         }
+
     }
 
     /**
@@ -814,44 +746,32 @@ public final class OfficeIoFactory {
      * @date: 2014年6月11日 下午4:47:09
      * @Description: 取出CELL所对应的值
      */
-    private String getValue(CellOptions cellOptions, Object bean) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private String getValue(CellOptions cellOptions, Object bean){
         //如果有静态值，直接返回
         if (cellOptions.getHasStaticValue()) {
             return cellOptions.getStaticValue();
         }
 
-        Object returnObj = BeanUtils.getProperty(bean, cellOptions.getKey());
-
+        Object returnObj = null;
+        returnObj = BeanUtils.invokeGetter(bean, cellOptions.getKey());
         if (cellOptions.getSelect()){
             return cellOptions.getCellSelectRealValue(returnObj.toString());
         }
 
         if (returnObj instanceof Date) {
-            return simpleDateFormat.format(returnObj);
+            returnObj = CellDataConverter.date2Str((Date) returnObj,CellDataConverter.DATE_FORMAT_SEC);
+        }
+
+        //处理固定数据
+        if (cellOptions.getFixedValue()) {
+            returnObj = cellOptions.getFixedMap().get(String.valueOf(returnObj));
         }
 
         if (returnObj == null) {
-            return "";
+            returnObj = "";
         }
-        //处理固定数据
-        if (cellOptions.getFixedValue()) {
-            return (String) cellOptions.getFixedMap().get(String.valueOf(returnObj));
-        }
-        return String.valueOf(returnObj);
-    }
 
-    private Date dateType(String s) {
-        Date cellDate = null;
-        try {
-            cellDate = longDateFormat.parse(s);
-        } catch (Exception ex) {
-            try {
-                cellDate = shortDateFormat.parse(s);
-            }catch (ParseException e) {
-                log.error(e.getMessage(),e);
-            }
-        }
-        return cellDate;
+        return String.valueOf(returnObj);
     }
 
     /**
@@ -913,7 +833,7 @@ public final class OfficeIoFactory {
      * @throws NoSuchMethodException
      * @throws InvocationTargetException
      */
-    private Cell setCellDataValue(Sheet sheet, Cell cell, CellOptions cellOptions, int rowIndex, int xlsCellIndex, Object dataBean, CellStyle dateStyle) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private Cell setCellDataValue(Sheet sheet, Cell cell, CellOptions cellOptions, int rowIndex, int xlsCellIndex, Object dataBean, CellStyle dateStyle) {
         //写入内容
         if (cellOptions.getHasStaticValue()) {
             cell.setCellValue(cellOptions.getStaticValue());
@@ -934,7 +854,7 @@ public final class OfficeIoFactory {
                 cell.setCellValue(new BigDecimal((reVal)).doubleValue());
             } else if (cellOptions.getCellDataType() == CellDataType.DATE) {
                 try {
-                    cell.setCellValue(cstDateFormat.parse(reVal));
+                    cell.setCellValue(CellDataConverter.str2Date(reVal));
                 } catch (ParseException e) {
                     log.warn(e.getMessage());
                     cell.setCellValue(reVal);

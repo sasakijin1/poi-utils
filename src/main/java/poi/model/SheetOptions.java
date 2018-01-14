@@ -20,12 +20,12 @@ public final class SheetOptions {
 	/**
 	 * 跳过条数
 	 */
-	private int skipRows;
+	private Integer skipRows;
 	
 	/**
 	 * 表序号
 	 */
-	private int sheetSeq;
+	private Integer sheetSeq;
 	
 	/**
 	 * 列设置
@@ -57,19 +57,21 @@ public final class SheetOptions {
 	 * @date: 2014年6月11日 上午10:40:41
 	 * @Description:按表名来构造(导入时用)
 	 */
-	public SheetOptions(int sheetSeq,int skipRows){
+	public SheetOptions(Integer sheetSeq,Integer skipRows){
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
 	}
 
+	public SheetOptions(String sheetName){
+		this.sheetName = sheetName;
+	}
+
 	public SheetOptions(String sheetName,Class clazz){
 		this.sheetName = sheetName;
-		this.sheetSeq = 0;
-		this.skipRows = 1;
 		this.dataClazzType = clazz;
 	}
 
-	public SheetOptions(String sheetName,int sheetSeq,int skipRows){
+	public SheetOptions(String sheetName,Integer sheetSeq,Integer skipRows){
 		this.sheetName = sheetName;
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
@@ -80,7 +82,7 @@ public final class SheetOptions {
 	 * @date: 2014-6-21 下午4:53:51
 	 * @Description:按表名来构造(导入时用)
 	 */
-	public SheetOptions(String sheetName,int sheetSeq,int skipRows,Class clazz){
+	public SheetOptions(String sheetName,Integer sheetSeq,Integer skipRows,Class clazz){
 		this.sheetName = sheetName;
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
@@ -115,14 +117,14 @@ public final class SheetOptions {
 	/**
 	 * @return the sheetSeq
 	 */
-	public int getSheetSeq() {
+	public Integer getSheetSeq() {
 		return sheetSeq;
 	}
 
 	/**
 	 * @param sheetSeq the sheetSeq to set
 	 */
-	public void setSheetSeq(int sheetSeq) {
+	public void setSheetSeq(Integer sheetSeq) {
 		this.sheetSeq = sheetSeq;
 	}
 
@@ -148,14 +150,14 @@ public final class SheetOptions {
 	/**
 	 * @return the skipRows
 	 */
-	public int getSkipRows() {
+	public Integer getSkipRows() {
 		return skipRows;
 	}
 
 	/**
 	 * @param skipRows the skipRows to set
 	 */
-	public void setSkipRows(int skipRows) {
+	public void setSkipRows(Integer skipRows) {
 		this.skipRows = skipRows;
 	}
 

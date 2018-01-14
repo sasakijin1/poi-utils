@@ -20,10 +20,10 @@ public final class OfficeIoUtils {
 
 	private final static Logger log = LoggerFactory.getLogger(OfficeIoFactory.class);
 
-	private final static OfficeIoFactory ioFactory = new OfficeIoFactory();
+	private final static OfficeIoFactory IO_FACTORY = new OfficeIoFactory();
 
-	public static OfficeIoResult exportXlsxTempalet(SheetOptions sheets){
-		return ioFactory.exportXlsxTempalet(new SheetOptions[]{sheets});
+	public static OfficeIoResult exportXlsxTemplate(SheetOptions sheets){
+		return IO_FACTORY.exportXlsxTemplate(new SheetOptions[]{sheets});
 	}
 
 	/**
@@ -33,8 +33,8 @@ public final class OfficeIoUtils {
 	 * @param sheets
 	 * @return
 	 */
-	public static OfficeIoResult exportXlsxTempalet(SheetOptions[] sheets){
-		return ioFactory.exportXlsxTempalet(sheets);
+	public static OfficeIoResult exportXlsxTemplate(SheetOptions[] sheets){
+		return IO_FACTORY.exportXlsxTemplate(sheets);
 	}
 
 	/**
@@ -43,11 +43,11 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportXlsx(SheetOptions[] sheets){
-		return ioFactory.exportXlsx(sheets);
+		return IO_FACTORY.exportXlsx(sheets);
 	}
 
 	public static OfficeIoResult importXlsx(InputStream inputStream, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
-		return ioFactory.importXlsx(inputStream, sheets);
+		return IO_FACTORY.importXlsx(inputStream, sheets);
 	}
 
 	/**
@@ -57,25 +57,25 @@ public final class OfficeIoUtils {
 	 * @param file
 	 * @param sheets
 	 * @return
-	 * @throws Exception 
-	 * @throws IOException 
+	 * @throws Exception
+	 * @throws IOException
 	 */
 	public static OfficeIoResult importXlsx(File file, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
-		return ioFactory.importXlsx(file, sheets);
+		return IO_FACTORY.importXlsx(file, sheets);
 	}
-	
+
 	/**
 	 * @author: wujinglei
 	 * @date: 2014-6-20 下午3:50:03
-	 * @Description: 导出出错信息内容 
+	 * @Description: 导出出错信息内容
 	 * @param sheets
 	 * @param errRecordRows
 	 * @return
 	 */
 	public static OfficeIoResult exportErrorRecord(SheetOptions[] sheets, Map<Integer,List> errRecordRows){
-		return ioFactory.exportXlsxErrorRecord(sheets, errRecordRows);
+		return IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
 	}
-	
+
 	/**
 	 * @author: wujinglei
 	 * @date: 2014-6-21 下午1:14:44
@@ -86,7 +86,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static boolean exportErrorFile(SheetOptions[] sheets,Map<Integer,List> errRecordRows, String filePath){
-		OfficeIoResult errResult = ioFactory.exportXlsxErrorRecord(sheets, errRecordRows);
+		OfficeIoResult errResult = IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
 		FileOutputStream output = null;
 		try {
 			output = new FileOutputStream(new File(filePath));
