@@ -1,5 +1,6 @@
 package poi.utils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -138,4 +139,27 @@ public class FieldUtils {
         return tablebean;
     }
 
+    public static Field getDeclaredField(Class clazz, String fieldName){
+        Field field = null ;
+
+        for(; clazz != Object.class ; clazz = clazz.getSuperclass()) {
+            try {
+                field = clazz.getDeclaredField(fieldName) ;
+                return field ;
+            } catch (Exception e) {
+
+            }
+        }
+
+        return null;
+    }
+
+    public static Class getDeclaredFieldType(Class clazz, String fieldName){
+        Field field = getDeclaredField(clazz,fieldName);
+        if (field != null){
+            return field.getType();
+        }else{
+            return null;
+        }
+    }
 }

@@ -61,6 +61,8 @@ public final class CellOptions {
 	private CellDataType cellDataType = CellDataType.AUTO;
 
 	private CellStyleOptions cellStyleOptions;
+
+	private Class cellClass;
 	
 	/**
 	 * @author: wujinglei
@@ -376,5 +378,13 @@ public final class CellOptions {
 	 */
 	public Boolean getSelectCascadeFlag(){
 		return cellSelect.getCascadeFlag();
+	}
+
+	public Class getCellClass() {
+		return cellClass;
+	}
+
+	public void setCellClass(Class cellClass) {
+		this.cellClass = cellClass;
 	}
 }

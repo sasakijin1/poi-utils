@@ -19,8 +19,10 @@ import poi.model.ErrorRecord;
 import poi.model.SheetOptions;
 import poi.utils.BeanUtils;
 import poi.utils.CellDataConverter;
+import poi.utils.FieldUtils;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -563,6 +565,22 @@ public final class OfficeIoFactory {
                 result.addErrorRecord(new ErrorRecord(thisSheetOptions.getSheetSeq(), "无法在文件中找到指定的sheet序号", "跳过sheet处理", true));
                 continue;
             }
+
+            // check entityDataType
+//            if (thisSheetOptions.getDataClazzType() != null){
+//                for (CellOptions cellOptions: cells){
+//                    if (cellOptions.getSubCells() == null){
+//                        if (cellOptions.getCellClass() == null){
+//                            cellOptions.setCellClass(FieldUtils.getDeclaredFieldType(thisSheetOptions.getDataClazzType(),cellOptions.getKey()));
+//                        }
+//                    }else {
+//                        for (CellOptions subCell: cellOptions.getSubCells()){
+//                            subCell.setCellClass(FieldUtils.getDeclaredFieldType(thisSheetOptions.getDataClazzType(),subCell.getKey()));
+//                        }
+//                    }
+//                }
+//            }
+
             // 取提对应的sheet
             Sheet sheet = wb.getSheetAt(thisSheetOptions.getSheetSeq());
             List sheetList = new ArrayList();
@@ -609,7 +627,7 @@ public final class OfficeIoFactory {
                                     if (!checkRule(cells, cellIndex + subCellIndex, obj, result, sheetIndex, activeRow)) {
                                         continue rowLoop;
                                     }
-                                    BeanUtils.invokeSetter(resultObj, subCells[subCellIndex].getKey(), obj);
+                                    setValueToObject(resultObj, subCells[subCellIndex], obj);
                                     excelCellIndex++;
                                 }
                             } else {
@@ -618,7 +636,7 @@ public final class OfficeIoFactory {
                                 if (!checkRule(cells, cellIndex, obj, result, sheetIndex, activeRow)) {
                                     continue rowLoop;
                                 }
-                                BeanUtils.invokeSetter(resultObj, cells[cellIndex].getKey(), obj);
+                                setValueToObject(resultObj, cells[cellIndex], obj);
                                 excelCellIndex++;
                             }
                         }
@@ -640,6 +658,13 @@ public final class OfficeIoFactory {
         return result;
     }
 
+    private void setValueToObject (Object targetObj,CellOptions cellOptions,Object value){
+        if (targetObj instanceof Map){
+            ((Map) targetObj).put(cellOptions.getKey(),value);
+        }else {
+            BeanUtils.invokeSetter(targetObj, cellOptions.getKey(), value,cellOptions.getCellClass());
+        }
+    }
 
     /**
      * @param cell

@@ -12,6 +12,9 @@ public enum CellDataType {
 	AUTO("auto"),
 	VARCHAR("varchar"),
 	NUMBER("number"),
+	INTEGER("integer"),
+	BIGINT("bigint"),
+	BOOLEAN("boolean"),
 	DATE("date"),
 	SELECT("select"),
 	FORMULA("formula");

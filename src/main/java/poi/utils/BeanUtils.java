@@ -366,4 +366,5 @@ public class BeanUtils {
     private static String set(String name) {
         return "set" + (name.charAt(0) + "").toUpperCase() + name.substring(1);//get+变量名的第一个字母大写
     }
+
 }
