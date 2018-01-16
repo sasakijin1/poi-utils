@@ -64,6 +64,8 @@ public final class CellOptions {
 
 	private Class cellClass;
 
+	private DatePattern pattern;
+
 	/**
 	 * @author: wujinglei
 	 * @date: 2014年6月10日 下午5:00:42
@@ -386,6 +388,15 @@ public final class CellOptions {
 
 	public void setCellClass(Class cellClass) {
 		this.cellClass = cellClass;
+	}
+
+	public CellOptions addPattern(DatePattern pattern){
+		this.pattern = pattern;
+		return this;
+	}
+
+	public DatePattern getPattern() {
+		return pattern;
 	}
 
 	public void setCellDataType(CellDataType cellDataType){

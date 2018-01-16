@@ -4,6 +4,7 @@ import com.jin.commons.poi.OfficeIoResult;
 import com.jin.commons.poi.OfficeIoUtils;
 import com.jin.commons.poi.model.CellDataType;
 import com.jin.commons.poi.model.CellOptions;
+import com.jin.commons.poi.model.DatePattern;
 import com.jin.commons.poi.model.SheetOptions;
 
 import java.io.File;
@@ -23,6 +24,7 @@ public class test {
         exportXls(list);
 //        exportXlsTemplate();
 //        System.out.println(Integer.valueOf("0.0"));
+        System.out.println(DatePattern.DATE_FORMAT_DAY.getValue());
     }
 
     private static List importXls() throws FileNotFoundException, InvocationTargetException, IllegalAccessException {
@@ -44,7 +46,7 @@ public class test {
                         }
                 ),
                 new CellOptions("phone","手机号").addCellDataType(CellDataType.VARCHAR),
-                new CellOptions("birthday","出生年月").addCellDataType(CellDataType.DATE),
+                new CellOptions("birthday","出生年月").addCellDataType(CellDataType.DATE).addPattern(DatePattern.DATE_FORMAT_DAY),
                 new CellOptions("date","年月").addSubCells(
                         new CellOptions[]{
                                 new CellOptions("yearMonthStr","年月中文"),
@@ -118,7 +120,7 @@ public class test {
         transactStatusFixed.put("2", "已办理");
         transactStatusFixed.put("3", "已退回");
 
-        SheetOptions sheet = new SheetOptions("测试1");
+        SheetOptions sheet = new SheetOptions("测试1",TestDTO.class);
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
                 new CellOptions("idCard","证件").addSubCells(

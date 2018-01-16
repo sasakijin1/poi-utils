@@ -694,7 +694,7 @@ public final class OfficeIoFactory {
                 case NUMERIC:
                     cellValue = String.valueOf(cell.getNumericCellValue());
                     if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                        cellValue = CellDataConverter.date2Str(HSSFDateUtil.getJavaDate(cell.getNumericCellValue()), CellDataConverter.DATE_FORMAT_DAY);
+                        cellValue = CellDataConverter.date2Str(HSSFDateUtil.getJavaDate(cell.getNumericCellValue()), DatePattern.DATE_FORMAT_DAY.getValue());
                     } else {
                         cellValue = CellDataConverter.scientificNotation(cellValue);
                     }
@@ -817,7 +817,7 @@ public final class OfficeIoFactory {
         }
 
         if (returnObj instanceof Date) {
-            returnObj = CellDataConverter.date2Str((Date) returnObj, CellDataConverter.DATE_FORMAT_SEC);
+            returnObj = CellDataConverter.date2Str((Date) returnObj, DatePattern.DATE_FORMAT_SEC.getValue());
         }
 
         //处理固定数据
@@ -902,7 +902,11 @@ public final class OfficeIoFactory {
                 cell.setCellValue(new BigDecimal((reVal)).doubleValue());
             } else if (cellOptions.getCellDataType() == CellDataType.DATE) {
                 try {
-                    cell.setCellValue(CellDataConverter.str2Date(reVal));
+                    if (cellOptions.getPattern() != null){
+                        cell.setCellValue(CellDataConverter.str2Date(reVal,cellOptions.getPattern().getValue()));
+                    }else{
+                        cell.setCellValue(CellDataConverter.str2Date(reVal));
+                    }
                 } catch (ParseException e) {
                     log.warn(e.getMessage());
                     cell.setCellValue(reVal);
@@ -1014,8 +1018,8 @@ public final class OfficeIoFactory {
             }
         }
 
-        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Text"), false);
-        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Value"), false);
+        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Text"), true);
+        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Value"), true);
     }
 
     private void createSelectRow(Row currentRow, String[] textList) {

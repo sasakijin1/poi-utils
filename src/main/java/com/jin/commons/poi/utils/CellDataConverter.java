@@ -1,5 +1,7 @@
 package com.jin.commons.poi.utils;
 
+import com.jin.commons.poi.model.DatePattern;
+
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,15 +9,6 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 public class CellDataConverter {
-
-    public static final String DATE_FORMAT_DAY = "yyyy-MM-dd";
-    public static final String DATE_FORMAT_DAY_2 = "yyyy/MM/dd";
-    public static final String TIME_FORMAT_SEC = "HH:mm:ss";
-    public static final String DATE_FORMAT_SEC = "yyyy-MM-dd HH:mm:ss";
-    public static final String DATE_FORMAT_MSEC = "yyyy-MM-dd HH:mm:ss.SSS";
-    public static final String DATE_FORMAT_MSEC_T = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-    public static final String DATE_FORMAT_MSEC_T_Z = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    public static final String DATE_FORMAT_DAY_SIMPLE = "y/M/d";
 
     /**
      * 匹配yyyy-MM-dd
@@ -78,7 +71,7 @@ public class CellDataConverter {
      * @return 返回格式化后的时间字符串
      */
     public static String date2Str(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_SEC);
+        SimpleDateFormat sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_SEC.getValue());
         return sdf.format(date);
     }
 
@@ -123,28 +116,28 @@ public class CellDataConverter {
         strDate = strDate.trim();
         SimpleDateFormat sdf = null;
         if (Pattern.matches(DATE_REG,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_DAY);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_DAY.getValue());
         }
         if (Pattern.matches(DATE_REG_2,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_DAY_2);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_DAY_2.getValue());
         }
         if (Pattern.matches(DATE_REG_SIMPLE_2,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_DAY_SIMPLE);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_DAY_SIMPLE.getValue());
         }
         if (Pattern.matches(TIME_SEC_REG,strDate)) {
-            sdf = new SimpleDateFormat(TIME_FORMAT_SEC);
+            sdf = new SimpleDateFormat(DatePattern.TIME_FORMAT_SEC.getValue());
         }
         if (Pattern.matches(DATE_TIME_REG,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_SEC);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_SEC.getValue());
         }
         if (Pattern.matches(DATE_TIME_MSEC_REG,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_MSEC);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_MSEC.getValue());
         }
         if (Pattern.matches(DATE_TIME_MSEC_T_REG,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_MSEC_T);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_MSEC_T.getValue());
         }
         if (Pattern.matches(DATE_TIME_MSEC_T_Z_REG,strDate)) {
-            sdf = new SimpleDateFormat(DATE_FORMAT_MSEC_T_Z);
+            sdf = new SimpleDateFormat(DatePattern.DATE_FORMAT_MSEC_T_Z.getValue());
         }
         if (null != sdf) {
             return sdf.parse(strDate);
