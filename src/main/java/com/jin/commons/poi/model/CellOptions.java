@@ -1,4 +1,4 @@
-package poi.model;
+package com.jin.commons.poi.model;
 
 import java.util.List;
 import java.util.Map;
@@ -63,7 +63,7 @@ public final class CellOptions {
 	private CellStyleOptions cellStyleOptions;
 
 	private Class cellClass;
-	
+
 	/**
 	 * @author: wujinglei
 	 * @date: 2014年6月10日 下午5:00:42
@@ -386,5 +386,9 @@ public final class CellOptions {
 
 	public void setCellClass(Class cellClass) {
 		this.cellClass = cellClass;
+	}
+
+	public void setCellDataType(CellDataType cellDataType){
+		this.cellDataType = cellDataType;
 	}
 }

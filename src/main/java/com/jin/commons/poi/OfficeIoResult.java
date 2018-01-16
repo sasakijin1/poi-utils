@@ -1,4 +1,4 @@
-package poi;
+package com.jin.commons.poi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,8 +8,8 @@ import java.util.Map;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import poi.model.ErrorRecord;
-import poi.model.SheetOptions;
+import com.jin.commons.poi.model.ErrorRecord;
+import com.jin.commons.poi.model.SheetOptions;
 
 /**
  * @ClassName: OfficeIoResult

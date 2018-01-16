@@ -1,16 +1,15 @@
 package demo;
 
-import poi.*;
-import poi.model.CellDataType;
-import poi.model.CellOptions;
-import poi.model.SheetOptions;
-import poi.utils.FieldUtils;
+import com.jin.commons.poi.OfficeIoResult;
+import com.jin.commons.poi.OfficeIoUtils;
+import com.jin.commons.poi.model.CellDataType;
+import com.jin.commons.poi.model.CellOptions;
+import com.jin.commons.poi.model.SheetOptions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +22,7 @@ public class test {
         System.out.println(list.size());
         exportXls(list);
 //        exportXlsTemplate();
-
-
+//        System.out.println(Integer.valueOf("0.0"));
     }
 
     private static List importXls() throws FileNotFoundException, InvocationTargetException, IllegalAccessException {

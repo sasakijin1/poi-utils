@@ -12,15 +12,14 @@ public class TestDTO {
     private String phone;
     private Date birthday;
     private String yearMonthStr;
-    private String yearMonth;
-    private String dayStr;
+    private Integer yearMonth;
+    private Integer dayStr;
     private String dayNic;
-    private String dayFormat;
+    private Long dayFormat;
     private String select;
-    private String amountStr;
+    private Double amountStr;
     private BigDecimal amountNum;
-    private String status;
-    private Timestamp timestamp;
+    private Integer status;
 
     public String getName() {
         return name;
@@ -70,19 +69,19 @@ public class TestDTO {
         this.yearMonthStr = yearMonthStr;
     }
 
-    public String getYearMonth() {
+    public Integer getYearMonth() {
         return yearMonth;
     }
 
-    public void setYearMonth(String yearMonth) {
+    public void setYearMonth(Integer yearMonth) {
         this.yearMonth = yearMonth;
     }
 
-    public String getDayStr() {
+    public Integer getDayStr() {
         return dayStr;
     }
 
-    public void setDayStr(String dayStr) {
+    public void setDayStr(Integer dayStr) {
         this.dayStr = dayStr;
     }
 
@@ -94,11 +93,11 @@ public class TestDTO {
         this.dayNic = dayNic;
     }
 
-    public String getDayFormat() {
+    public Long getDayFormat() {
         return dayFormat;
     }
 
-    public void setDayFormat(String dayFormat) {
+    public void setDayFormat(Long dayFormat) {
         this.dayFormat = dayFormat;
     }
 
@@ -110,11 +109,11 @@ public class TestDTO {
         this.select = select;
     }
 
-    public String getAmountStr() {
+    public Double getAmountStr() {
         return amountStr;
     }
 
-    public void setAmountStr(String amountStr) {
+    public void setAmountStr(Double amountStr) {
         this.amountStr = amountStr;
     }
 
@@ -126,19 +125,11 @@ public class TestDTO {
         this.amountNum = amountNum;
     }
 
-    public String getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Integer status) {
         this.status = status;
-    }
-
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
     }
 }

@@ -1,4 +1,4 @@
-package poi.model;
+package com.jin.commons.poi.model;
 
 /**
  * @ClassName: CellRule

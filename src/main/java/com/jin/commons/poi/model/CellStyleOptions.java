@@ -1,4 +1,4 @@
-package poi.model;
+package com.jin.commons.poi.model;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;

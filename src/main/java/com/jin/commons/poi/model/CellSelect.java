@@ -1,6 +1,6 @@
-package poi.model;
+package com.jin.commons.poi.model;
 
-import poi.utils.BeanUtils;
+import com.jin.commons.poi.utils.BeanUtils;
 
 import java.util.*;
 

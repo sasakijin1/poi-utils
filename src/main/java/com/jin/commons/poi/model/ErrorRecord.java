@@ -1,4 +1,4 @@
-package poi.model;
+package com.jin.commons.poi.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

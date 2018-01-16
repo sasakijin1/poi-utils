@@ -1,8 +1,8 @@
-package poi;
+package com.jin.commons.poi;
 
+import com.jin.commons.poi.model.SheetOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import poi.model.SheetOptions;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
