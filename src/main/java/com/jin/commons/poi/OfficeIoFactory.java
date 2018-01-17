@@ -460,7 +460,7 @@ public final class OfficeIoFactory {
                     if (StringUtils.isBlank(String.valueOf(obj))) {
                         result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列不能为空", "跳过行处理", false));
                         result.addErrorRecordRow(sheetIndex, activeRow);
-                        return cells[cellIndex].isKeepInput();
+                        return false;
                     }
                     break;
                 case EQUALSTO:
@@ -468,7 +468,7 @@ public final class OfficeIoFactory {
                         result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值"
                                 + cells[cellIndex].getCellRuleValue() + "与读取出的值" + obj + "不相等", "跳过行处理", false));
                         result.addErrorRecordRow(sheetIndex, activeRow);
-                        return cells[cellIndex].isKeepInput();
+                        return false;
                     }
                 case LONG:
                     if (StringUtils.isNotBlank(String.valueOf(obj))) {
@@ -477,7 +477,7 @@ public final class OfficeIoFactory {
                         } catch (NumberFormatException ex) {
                             result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值不是长整型", "跳过行处理", false));
                             result.addErrorRecordRow(sheetIndex, activeRow);
-                            return cells[cellIndex].isKeepInput();
+                            return false;
                         }
                     }
                 case INTEGER:
@@ -487,7 +487,7 @@ public final class OfficeIoFactory {
                         } catch (NumberFormatException ex) {
                             result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值不是整型", "跳过行处理", false));
                             result.addErrorRecordRow(sheetIndex, activeRow);
-                            return cells[cellIndex].isKeepInput();
+                            return false;
                         }
                     }
                 case DOUBLE:
@@ -497,14 +497,14 @@ public final class OfficeIoFactory {
                         } catch (NumberFormatException ex) {
                             result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值不是浮点型", "跳过行处理", false));
                             result.addErrorRecordRow(sheetIndex, activeRow);
-                            return cells[cellIndex].isKeepInput();
+                            return false;
                         }
                     }
                 case DATEFORMAT:
                     if (cells[cellIndex].getCellRuleValue() == null) {
                         result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值与所给的日期格式不相符", "跳过行处理", false));
                         result.addErrorRecordRow(sheetIndex, activeRow);
-                        return cells[cellIndex].isKeepInput();
+                        return false;
                     } else {
                         SimpleDateFormat cellSdf = new SimpleDateFormat(String.valueOf(cells[cellIndex].getCellRuleValue()));
                         try {
@@ -512,16 +512,14 @@ public final class OfficeIoFactory {
                         } catch (Exception e) {
                             result.addErrorRecord(new ErrorRecord(sheetIndex, activeRow.getRowNum(), cellIndex, cells[cellIndex], "当前列预设值不是整型", "跳过行处理", false));
                             result.addErrorRecordRow(sheetIndex, activeRow);
-                            return cells[cellIndex].isKeepInput();
+                            return false;
                         }
                     }
                 default:
                     break;
             }
-            return true;
-        } else {
-            return true;
         }
+        return true;
     }
 
     /**
@@ -583,7 +581,11 @@ public final class OfficeIoFactory {
                     // 第一行的各列放在一个MAP中
                     Object resultObj;
                     try {
-                        resultObj = thisSheetOptions.getDataClazzType().newInstance();
+                        if (thisSheetOptions.getDataClazzType() != null){
+                            resultObj = thisSheetOptions.getDataClazzType().newInstance();
+                        }else {
+                            resultObj = new HashMap();
+                        }
                     } catch (InstantiationException e) {
                         log.error(e.getMessage());
                         resultObj = new HashMap();
@@ -722,16 +724,13 @@ public final class OfficeIoFactory {
                 case NUMBER:
                     try {
                         if (!"".equals(cellValue)) {
-                            if (options.getCellClass() == BigDecimal.class){
-                                return new BigDecimal(cellValue);
-                            }
                             if (options.getCellClass() == Double.class){
                                 return Double.valueOf(cellValue);
                             }
                             if (options.getCellClass() == Float.class){
                                 return Float.valueOf(cellValue);
                             }
-
+                            return new BigDecimal(cellValue);
                         }
                     } catch (Exception e) {
                         throw new XSSFCellTypeException("Cell Value[" + cellValue + "] can not to Number: " + e.getMessage());
@@ -742,6 +741,7 @@ public final class OfficeIoFactory {
                             cellValue = CellDataConverter.matchNumber2Varchar(cellValue);
                             return Integer.valueOf(cellValue);
                         }
+                        break;
                     } catch (Exception e) {
                         throw new XSSFCellTypeException("Cell Value[" + cellValue + "] can not to Integer: " + e.getMessage());
                     }
@@ -751,6 +751,7 @@ public final class OfficeIoFactory {
                             cellValue = CellDataConverter.matchNumber2Varchar(cellValue);
                             return Long.valueOf(cellValue);
                         }
+                        break;
                     } catch (Exception e) {
                         throw new XSSFCellTypeException("Cell Value[" + cellValue + "] can not to Long: " + e.getMessage());
                     }
@@ -759,6 +760,7 @@ public final class OfficeIoFactory {
                         if (!"".equals(cellValue)) {
                             return Boolean.valueOf(cellValue);
                         }
+                        break;
                     } catch (Exception e) {
                         throw new XSSFCellTypeException("Cell Value[" + cellValue + "] can not to Boolean: " + e.getMessage());
                     }
@@ -767,6 +769,7 @@ public final class OfficeIoFactory {
                         if (!"".equals(cellValue)) {
                             return CellDataConverter.str2Date(cellValue);
                         }
+                        break;
                     } catch (Exception e) {
                         throw new XSSFCellTypeException("Cell Value[" + cellValue + "] can not to DATE: " + e.getMessage());
                     }
@@ -977,49 +980,89 @@ public final class OfficeIoFactory {
         try {
             throw e;
         } catch (IllegalArgumentException illegalArgumentException) {
-            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据异常(数据类型转换导致)", "跳过行处理", false));
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据异常(数据类型转换导致)", "跳过行处理:" + thisCellOptions.getKey(), false));
             result.addErrorRecordRow(sheetIndex, row);
         } catch (NoSuchMethodException noSuchMethodException) {
-            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "属性异常(无法找到相应的属性)", "跳过行处理", true));
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "属性异常(无法找到相应的属性)", "跳过行处理:" + thisCellOptions.getKey(), true));
             result.addErrorRecordRow(sheetIndex, row);
         } catch (InvocationTargetException invocationTargetException) {
-            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据集异常(集合中的单个数据集异常)", "跳过行处理", true));
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "数据集异常(集合中的单个数据集异常)", "跳过行处理:" + thisCellOptions.getKey(), true));
             result.addErrorRecordRow(sheetIndex, row);
         } catch (IllegalAccessException illegalAccessException) {
-            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理:" + thisCellOptions.getKey(), true));
             result.addErrorRecordRow(sheetIndex, row);
         } catch (Exception e1) {
-            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理", true));
+            result.addErrorRecord(new ErrorRecord(sheetIndex, dataIndex, cellIndex, thisCellOptions, "Bean方法调用异常(无法正常调用方法)", "跳过行处理:" + thisCellOptions.getKey(), true));
             result.addErrorRecordRow(sheetIndex, row);
         }
     }
 
+    /**
+     * 处理下拉列表问题
+     * @param workbook
+     * @param sheetOptions
+     * @param index
+     */
     private void createHideSelectSheet(Workbook workbook, SheetOptions sheetOptions, int index) {
         Sheet selectTextSheet = workbook.createSheet("select" + "_" + index + "_Text");
         Sheet selectValueSheet = workbook.createSheet("select" + "_" + index + "_Value");
 
         CellOptions[] cellOptions = sheetOptions.getCellOptions();
         int selectRowIndex = 0;
+        // 先处理没有联动的下拉
+        Map<String,String[]> textMapping = new HashMap<String, String[]>();
+        Map<String,String[]> valueMapping = new HashMap<String, String[]>();
         for (CellOptions thisCell : cellOptions) {
             if (thisCell.getSubCells() != null) {
                 for (CellOptions subCell : thisCell.getSubCells()) {
-                    if (subCell.getSelect()) {
-                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell);
+                    if (subCell.getSelect() && !subCell.getSelectCascadeFlag()) {
+                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell.getSelectTextList(), subCell.getSelectValueList());
                         createSelectNameList(selectTextSheet.getSheetName(), workbook, subCell.getKey() + "_TEXT", selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
                         selectRowIndex++;
+                        textMapping.put(subCell.getKey(),subCell.getSelectTextList());
+                        valueMapping.put(subCell.getKey(),subCell.getSelectValueList());
                     }
                 }
             } else {
-                if (thisCell.getSelect()) {
-                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell);
+                if (thisCell.getSelect() && !thisCell.getSelectCascadeFlag()) {
+                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell.getSelectTextList(), thisCell.getSelectValueList());
                     createSelectNameList(selectTextSheet.getSheetName(), workbook, thisCell.getKey() + "_TEXT", selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
                     selectRowIndex++;
+                    textMapping.put(thisCell.getKey(),thisCell.getSelectTextList());
+                    valueMapping.put(thisCell.getKey(),thisCell.getSelectValueList());
                 }
             }
         }
 
+//        // 先处理没有联动的下拉
+//        for (CellOptions thisCell : cellOptions) {
+//            if (thisCell.getSubCells() != null) {
+//                for (CellOptions subCell : thisCell.getSubCells()) {
+//                    if (subCell.getSelect() && subCell.getSelectCascadeFlag()) {
+//                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell);
+//                        createSelectNameList(selectTextSheet.getSheetName(), workbook, subCell.getKey() + "_TEXT", selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
+//                        selectRowIndex++;
+//                    }
+//                }
+//            } else {
+//                if (thisCell.getSelect() && thisCell.getSelectCascadeFlag()) {
+//                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell);
+//                    createSelectNameList(selectTextSheet.getSheetName(), workbook, thisCell.getKey() + "_TEXT", selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
+//                    selectRowIndex++;
+//                }
+//            }
+//        }
+
         workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Text"), true);
         workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_Value"), true);
+    }
+
+    public String[] caleMappingList(Map<String,String[]> bandMap, String[] sourceList,CellOptions cellOptions){
+        if (bandMap.containsKey(cellOptions.getSelectTargetKey())){
+            return null;
+        }else {
+            return sourceList;
+        }
     }
 
     private void createSelectRow(Row currentRow, String[] textList) {
@@ -1032,9 +1075,9 @@ public final class OfficeIoFactory {
         }
     }
 
-    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, CellOptions cellOptions) {
-        createSelectRow(selectTextSheet.createRow(selectRowIndex), cellOptions.getSelectTextList());
-        createSelectRow(selectValueSheet.createRow(selectRowIndex), cellOptions.getSelectValueList());
+    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, String[] textList, String[] valueList) {
+        createSelectRow(selectTextSheet.createRow(selectRowIndex), textList);
+        createSelectRow(selectValueSheet.createRow(selectRowIndex), valueList);
     }
 
     private void createSelectNameList(String sheetName, Workbook workbook, String nameCode, int order, int size, boolean cascadeFlag) {

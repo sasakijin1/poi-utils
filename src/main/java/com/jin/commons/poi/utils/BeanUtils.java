@@ -3,6 +3,7 @@ package com.jin.commons.poi.utils;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Bean utils.
@@ -26,8 +27,12 @@ public class BeanUtils {
      * @return object object
      */
     public static Object invokeGetter(Object obj, String propertyName) {
-        String getterMethodName = get(propertyName);
-        return invokeMethod(obj, getterMethodName, new Class[]{}, new Object[]{});
+        if (Map.class.isAssignableFrom(obj.getClass())) {
+            return ((Map) obj).get(propertyName);
+        }else {
+            String getterMethodName = get(propertyName);
+            return invokeMethod(obj, getterMethodName, new Class[]{}, new Object[]{});
+        }
     }
 
     /**
@@ -38,7 +43,11 @@ public class BeanUtils {
      * @param value        the value
      */
     public static void invokeSetter(Object obj, String propertyName, Object value) {
-        invokeSetter(obj, propertyName, value, null);
+        if (Map.class.isAssignableFrom(obj.getClass())) {
+            ((Map) obj).put(propertyName, value);
+        }else {
+            invokeSetter(obj, propertyName, value, null);
+        }
     }
 
     /**

@@ -8,10 +8,10 @@ import com.jin.commons.poi.model.DatePattern;
 import com.jin.commons.poi.model.SheetOptions;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,23 +19,16 @@ import java.util.Map;
 public class test {
 
     public static void main(String[] args) throws IOException, InvocationTargetException, IllegalAccessException {
-        List list = importXls();
-        System.out.println(list.size());
-        exportXls(list);
-//        exportXlsTemplate();
+        OfficeIoResult officeIoResult = importXls();
+        System.out.println(officeIoResult.getResultTotal());
+        exportXls(officeIoResult.getImportList());
+        exportXlsTemplate();
 //        System.out.println(Integer.valueOf("0.0"));
-        System.out.println(DatePattern.DATE_FORMAT_DAY.getValue());
     }
 
-    private static List importXls() throws FileNotFoundException, InvocationTargetException, IllegalAccessException {
+    private static OfficeIoResult importXls() throws InvocationTargetException, IllegalAccessException {
 
-        SheetOptions sheet = new SheetOptions("测试1",TestDTO.class);
-
-        Map transactStatusFixed = new HashMap();
-        transactStatusFixed.put("0", "未办理");
-        transactStatusFixed.put("1", "办理中");
-        transactStatusFixed.put("2", "已办理");
-        transactStatusFixed.put("3", "已退回");
+        SheetOptions sheet = new SheetOptions("测试1");
 
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
@@ -56,14 +49,13 @@ public class test {
                                 new CellOptions("dayFormat","格式日期")
                         }
                 ),
-                new CellOptions("select","下拉"),
+                new CellOptions("select","下拉").isSelect(),
                 new CellOptions("amountStr","金额文字"),
                 new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
-                new CellOptions("status","状态")
+                new CellOptions("status","状态").isSelect()
         });
 
-        OfficeIoResult officeIoResult = OfficeIoUtils.importXlsx(new File("d:\\success.xlsx"),new SheetOptions[]{sheet});
-        return officeIoResult.getImportList();
+        return OfficeIoUtils.importXlsx(new File("d:\\success.xlsx"),new SheetOptions[]{sheet});
     }
 
     private static void exportXlsTemplate() throws IOException {
@@ -74,11 +66,50 @@ public class test {
         transactStatusFixed.put("2", "已办理");
         transactStatusFixed.put("3", "已退回");
 
-        Map aa = new HashMap();
-        aa.put("444", "4444");
-        aa.put("555", "5555");
-        aa.put("666", "6666");
-        aa.put("777", "7777");
+        List<Map<String,Object>> selectList = new ArrayList<Map<String, Object>>();
+        Map<String,Object> aa = new HashMap();
+        aa.put("id", "100");
+        aa.put("name", "一灵灵");
+        aa.put("key", "0");
+        Map<String,Object> bb = new HashMap();
+        bb.put("id", "101");
+        bb.put("name", "一灵一");
+        bb.put("key", "0");
+        selectList.add(aa);
+        selectList.add(bb);
+
+        Map<String,Object> cc = new HashMap();
+        cc.put("id", "200");
+        cc.put("name", "2灵灵");
+        cc.put("key", "1");
+        Map<String,Object> dd = new HashMap();
+        dd.put("id", "201");
+        dd.put("name", "2灵2");
+        dd.put("key", "1");
+        selectList.add(cc);
+        selectList.add(dd);
+
+        Map<String,Object> ee = new HashMap();
+        ee.put("id", "300");
+        ee.put("name", "3灵灵");
+        ee.put("key", "2");
+        Map<String,Object> ff = new HashMap();
+        ff.put("id", "301");
+        ff.put("name", "3灵一");
+        ff.put("key", "2");
+        selectList.add(ee);
+        selectList.add(ff);
+
+        Map<String,Object> gg = new HashMap();
+        gg.put("id", "400");
+        gg.put("name", "4灵灵");
+        gg.put("key", "3");
+        Map<String,Object> hh = new HashMap();
+        hh.put("id", "401");
+        hh.put("name", "4灵一");
+        hh.put("key", "3");
+        selectList.add(hh);
+        selectList.add(gg);
 
         SheetOptions sheet = new SheetOptions("测试1");
         sheet.setCellOptions(new CellOptions[]{
@@ -100,7 +131,7 @@ public class test {
                             new CellOptions("dayFormat","格式日期")
                         }
                 ),
-                new CellOptions("select","下拉").addCellSelect(null),
+                new CellOptions("select","下拉").addCellSelect("id","name",selectList).setSelectBind("key","status"),
                 new CellOptions("amountStr","金额文字"),
                 new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
                 new CellOptions("status","状态").addCellSelect(transactStatusFixed)
@@ -120,7 +151,7 @@ public class test {
         transactStatusFixed.put("2", "已办理");
         transactStatusFixed.put("3", "已退回");
 
-        SheetOptions sheet = new SheetOptions("测试1",TestDTO.class);
+        SheetOptions sheet = new SheetOptions("测试1");
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
                 new CellOptions("idCard","证件").addSubCells(

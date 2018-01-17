@@ -34,11 +34,6 @@ public final class CellOptions {
 	private Object cellRuleValue;
 	
 	/**
-	 * 规则异常时，是否跳过异常
-	 */
-	private boolean isKeepInput;
-	
-	/**
 	 * 固定值 
 	 */
 	private Boolean isFixedValue = false;
@@ -177,15 +172,6 @@ public final class CellOptions {
 	}
 
 	/**
-	 * Is keep input boolean.
-	 *
-	 * @return the isKeepInput
-	 */
-	public boolean isKeepInput() {
-		return isKeepInput;
-	}
-
-	/**
 	 * Gets cell data type.
 	 *
 	 * @return the cellDataType
@@ -205,23 +191,6 @@ public final class CellOptions {
 	 */
 	public CellOptions addCellDataType(CellDataType cellDataType) {
 		this.cellDataType = cellDataType;
-		this.isKeepInput = false;
-		return this;
-	}
-
-	/**
-	 * Add cell data type cell options.
-	 *
-	 * @param cellDataType the cell data type
-	 * @param isKeepInput  the is keep input
-	 * @return cell options
-	 * @author: wujinglei
-	 * @date: 2014 -8-13 下午5:50:25
-	 * @Description: 设置读取XLS单元格数据类型 ，按设置类型读取，出错时记录异常，按设置是否跳过添加数据
-	 */
-	public CellOptions addCellDataType(CellDataType cellDataType,boolean isKeepInput) {
-		this.cellDataType = cellDataType;
-		this.isKeepInput = isKeepInput;
 		return this;
 	}
 
@@ -230,16 +199,14 @@ public final class CellOptions {
 	 *
 	 * @param cellRule      the cell rule
 	 * @param cellRuleValue the cell rule value
-	 * @param isKeepInput   the is keep input
 	 * @return cell options
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:50:43
 	 * @Description: 添加CELL规则功能
 	 */
-	public CellOptions addCellRule(CellRule cellRule,Object cellRuleValue,boolean isKeepInput) {
+	public CellOptions addCellRule(CellRule cellRule,Object cellRuleValue) {
 		this.cellRule = cellRule;
 		this.cellRuleValue = cellRuleValue;
-		this.isKeepInput = isKeepInput;
 		return this;
 	}
 
@@ -287,6 +254,19 @@ public final class CellOptions {
 			this.cellSelect = new CellSelect(key, name, selectList);
 			this.addCellDataType(CellDataType.SELECT);
 		}
+		return this;
+	}
+
+	public CellOptions isSelect(){
+		this.isSelect = true;
+		this.addCellDataType(CellDataType.SELECT);
+		return this;
+	}
+
+	public CellOptions setSelectBind(String bindKey,String targetKey){
+		this.isSelect = true;
+		this.addCellDataType(CellDataType.SELECT);
+		this.cellSelect.setBind(bindKey,targetKey);
 		return this;
 	}
 
@@ -397,6 +377,18 @@ public final class CellOptions {
 
 	public DatePattern getPattern() {
 		return pattern;
+	}
+
+	public String getBingKey(){
+		return this.cellSelect.getBandKey();
+	}
+
+	public String getSelectTargetKey(){
+		return this.cellSelect.getTargetKey();
+	}
+
+	public List getSelectSourceList(){
+		return this.cellSelect.getSourceList();
 	}
 
 	public void setCellDataType(CellDataType cellDataType){

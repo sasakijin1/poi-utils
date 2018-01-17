@@ -40,7 +40,7 @@ public final class SheetOptions {
 	/**
 	 * 数据class类型
 	 */
-	private Class dataClazzType = HashMap.class;
+	private Class dataClazzType;
 	
 	/**
 	 * @author: wujinglei

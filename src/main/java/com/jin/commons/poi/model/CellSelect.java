@@ -15,12 +15,17 @@ public class CellSelect {
 
     private String[] selectValue;
 
-    private String mappingCode;
+    private List sourceList;
+
+    private String bandKey;
+
+    private String targetKey;
 
     private Boolean cascadeFlag;
 
-    public CellSelect(String mappingCode) {
-        this.mappingCode = mappingCode;
+    public void setBind(String bandKey,String targetKey) {
+        this.bandKey = bandKey;
+        this.targetKey = targetKey;
         this.cascadeFlag = true;
     }
 
@@ -30,36 +35,11 @@ public class CellSelect {
      * @param text        the text
      * @param value       the value
      * @param selectList  the select list
-     * @param mappingCode the mapping code
-     */
-    public CellSelect(String text, String value, List selectList,String mappingCode) {
-        this.setKeyAndValue(text,value,selectList);
-        this.mappingCode = mappingCode;
-        this.cascadeFlag = true;
-    }
-
-    /**
-     * Instantiates a new Cell select.
-     *
-     * @param text       the text
-     * @param value      the value
-     * @param selectList the select list
      */
     public CellSelect(String text, String value, List selectList) {
+        this.sourceList = selectList;
         this.setKeyAndValue(text,value,selectList);
         this.cascadeFlag = false;
-    }
-
-    /**
-     * Instantiates a new Cell select.
-     *
-     * @param map         the map
-     * @param mappingCode the mapping code
-     */
-    public CellSelect(Map<String, Object> map,String mappingCode) {
-        this.setKeyAndValue(map);
-        this.mappingCode = mappingCode;
-        this.cascadeFlag = true;
     }
 
     /**
@@ -70,18 +50,6 @@ public class CellSelect {
     public CellSelect(Map<String, Object> map) {
         this.setKeyAndValue(map);
         this.cascadeFlag = false;
-    }
-
-    /**
-     * Instantiates a new Cell select.
-     *
-     * @param arrays      the arrays
-     * @param mappingCode the mapping code
-     */
-    public CellSelect(String[] arrays,String mappingCode) {
-        this.setKeyAndValue(arrays);
-        this.mappingCode = mappingCode;
-        this.cascadeFlag = true;
     }
 
     /**
@@ -159,13 +127,12 @@ public class CellSelect {
         return selectValue;
     }
 
-    /**
-     * Gets mapping code.
-     *
-     * @return the mapping code
-     */
-    public String getMappingCode() {
-        return mappingCode;
+    public String getBandKey() {
+        return bandKey;
+    }
+
+    public String getTargetKey() {
+        return targetKey;
     }
 
     /**
@@ -175,5 +142,9 @@ public class CellSelect {
      */
     public Boolean getCascadeFlag() {
         return cascadeFlag;
+    }
+
+    public List getSourceList() {
+        return sourceList;
     }
 }
