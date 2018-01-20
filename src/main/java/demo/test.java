@@ -19,16 +19,16 @@ import java.util.Map;
 public class test {
 
     public static void main(String[] args) throws IOException, InvocationTargetException, IllegalAccessException {
-        OfficeIoResult officeIoResult = importXls();
-        System.out.println(officeIoResult.getResultTotal());
-        exportXls(officeIoResult.getImportList());
         exportXlsTemplate();
+        OfficeIoResult officeIoResult = importXls();
+        List list = officeIoResult.getImportList();
+        exportXls(list);
 //        System.out.println(Integer.valueOf("0.0"));
     }
 
     private static OfficeIoResult importXls() throws InvocationTargetException, IllegalAccessException {
 
-        SheetOptions sheet = new SheetOptions("测试1");
+        SheetOptions sheet = new SheetOptions("测试1",TestDTO.class).addTitle("测试标题");
 
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
@@ -49,10 +49,10 @@ public class test {
                                 new CellOptions("dayFormat","格式日期")
                         }
                 ),
-                new CellOptions("select","下拉").isSelect(),
+                new CellOptions("status","状态").isSelect(),
+                new CellOptions("select","下拉").isSelect().setSelectBind("key","status"),
                 new CellOptions("amountStr","金额文字"),
-                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
-                new CellOptions("status","状态").isSelect()
+                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER)
         });
 
         return OfficeIoUtils.importXlsx(new File("d:\\success.xlsx"),new SheetOptions[]{sheet});
@@ -111,7 +111,7 @@ public class test {
         selectList.add(hh);
         selectList.add(gg);
 
-        SheetOptions sheet = new SheetOptions("测试1");
+        SheetOptions sheet = new SheetOptions("测试1").addTitle("测试标题");
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
                 new CellOptions("idCard","证件").addSubCells(
@@ -131,10 +131,10 @@ public class test {
                             new CellOptions("dayFormat","格式日期")
                         }
                 ),
+                new CellOptions("status","状态").addCellSelect(transactStatusFixed),
                 new CellOptions("select","下拉").addCellSelect("id","name",selectList).setSelectBind("key","status"),
                 new CellOptions("amountStr","金额文字"),
-                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
-                new CellOptions("status","状态").addCellSelect(transactStatusFixed)
+                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER)
         });
 
         OfficeIoResult result = OfficeIoUtils.exportXlsxTemplate(sheet);
@@ -151,7 +151,7 @@ public class test {
         transactStatusFixed.put("2", "已办理");
         transactStatusFixed.put("3", "已退回");
 
-        SheetOptions sheet = new SheetOptions("测试1");
+        SheetOptions sheet = new SheetOptions("测试1",TestDTO.class).addTitle("测试标题");
         sheet.setCellOptions(new CellOptions[]{
                 new CellOptions("name","姓名"),
                 new CellOptions("idCard","证件").addSubCells(
@@ -171,10 +171,10 @@ public class test {
                                 new CellOptions("dayFormat","格式日期")
                         }
                 ),
+                new CellOptions("status","状态"),
                 new CellOptions("select","下拉"),
                 new CellOptions("amountStr","金额文字"),
-                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER),
-                new CellOptions("status","状态")
+                new CellOptions("amountNum","金额数字").addCellDataType(CellDataType.NUMBER)
         });
         sheet.setExportData(list);
 

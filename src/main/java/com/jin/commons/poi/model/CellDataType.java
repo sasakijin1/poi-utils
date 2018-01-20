@@ -16,7 +16,6 @@ public enum CellDataType {
 	BIGINT("bigint"),
 	BOOLEAN("boolean"),
 	DATE("date"),
-	SELECT("select"),
 	FORMULA("formula");
 	
 	String value;  

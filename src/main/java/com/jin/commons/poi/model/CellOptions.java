@@ -191,6 +191,9 @@ public final class CellOptions {
 	 */
 	public CellOptions addCellDataType(CellDataType cellDataType) {
 		this.cellDataType = cellDataType;
+		if (this.cellDataType == CellDataType.DATE){
+			this.pattern = DatePattern.DATE_FORMAT_SEC;
+		}
 		return this;
 	}
 
@@ -252,20 +255,23 @@ public final class CellOptions {
 		if (selectList != null && !selectList.isEmpty()) {
 			this.isSelect = true;
 			this.cellSelect = new CellSelect(key, name, selectList);
-			this.addCellDataType(CellDataType.SELECT);
 		}
 		return this;
 	}
 
 	public CellOptions isSelect(){
 		this.isSelect = true;
-		this.addCellDataType(CellDataType.SELECT);
+		if (this.cellSelect == null){
+			this.cellSelect = new CellSelect(new String[0]);
+		}
 		return this;
 	}
 
 	public CellOptions setSelectBind(String bindKey,String targetKey){
 		this.isSelect = true;
-		this.addCellDataType(CellDataType.SELECT);
+		if (this.cellSelect == null){
+			this.cellSelect = new CellSelect(new String[0]);
+		}
 		this.cellSelect.setBind(bindKey,targetKey);
 		return this;
 	}
@@ -280,7 +286,6 @@ public final class CellOptions {
 		if (map != null && !map.isEmpty()){
 			this.isSelect = true;
 			this.cellSelect = new CellSelect(map);
-			this.addCellDataType(CellDataType.SELECT);
 		}
 		return this;
 	}
@@ -359,7 +364,11 @@ public final class CellOptions {
 	 * @return the boolean
 	 */
 	public Boolean getSelectCascadeFlag(){
-		return cellSelect.getCascadeFlag();
+		if (this.cellSelect == null){
+			return false;
+		}else {
+			return cellSelect.getCascadeFlag();
+		}
 	}
 
 	public Class getCellClass() {
@@ -389,6 +398,10 @@ public final class CellOptions {
 
 	public List getSelectSourceList(){
 		return this.cellSelect.getSourceList();
+	}
+
+	public CellSelect getCellSelect() {
+		return cellSelect;
 	}
 
 	public void setCellDataType(CellDataType cellDataType){

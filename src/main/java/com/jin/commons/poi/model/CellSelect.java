@@ -21,8 +21,18 @@ public class CellSelect {
 
     private String targetKey;
 
-    private Boolean cascadeFlag;
+    private Boolean cascadeFlag = false;
 
+    private String key;
+
+    private String name;
+
+    /**
+     * Sets bind.
+     *
+     * @param bandKey   the band key
+     * @param targetKey the target key
+     */
     public void setBind(String bandKey,String targetKey) {
         this.bandKey = bandKey;
         this.targetKey = targetKey;
@@ -32,9 +42,9 @@ public class CellSelect {
     /**
      * Instantiates a new Cell select.
      *
-     * @param text        the text
-     * @param value       the value
-     * @param selectList  the select list
+     * @param text       the text
+     * @param value      the value
+     * @param selectList the select list
      */
     public CellSelect(String text, String value, List selectList) {
         this.sourceList = selectList;
@@ -69,25 +79,14 @@ public class CellSelect {
     /**
      * Instantiates a new Cell select.
      *
-     * @param text       the text
-     * @param value      the value
+     * @param key       the text
+     * @param name      the value
      * @param selectList the select list
      */
-    private void setKeyAndValue(String text, String value, List selectList) {
-        if (selectList != null && selectList.size() > 0) {
-            this.selectText = new String[selectList.size()];
-            this.selectValue = new String[selectList.size()];
-            for (int i = 0; i < selectList.size(); i++) {
-                Object obj = selectList.get(i);
-                if (obj instanceof Map) {
-                    this.selectText[i] = (String) ((Map) obj).get(text);
-                    this.selectValue[i] = (String) ((Map) obj).get(value);
-                } else {
-                    this.selectText[i] = (String) BeanUtils.invokeGetter(obj, text);
-                    this.selectValue[i] = (String) BeanUtils.invokeGetter(obj, value);
-                }
-            }
-        }
+    private void setKeyAndValue(String key, String name, List selectList) {
+        this.key = key;
+        this.name = name;
+        this.sourceList = selectList;
     }
 
     /**
@@ -96,16 +95,14 @@ public class CellSelect {
      * @param map the map
      */
     private void setKeyAndValue(Map<String, Object> map) {
-        if (map != null && map.size() > 0) {
-            this.selectText = new String[map.size()];
-            this.selectValue = new String[map.size()];
-            Set<String> keys = map.keySet();
-            int index = 0;
-            for (String key : keys) {
-                this.selectText[index] = (String) map.get(key);
-                this.selectValue[index] = key;
-                index++;
-            }
+        Set<String> keys = map.keySet();
+        selectText = new String[keys.size()];
+        selectValue = new String[keys.size()];
+        int index = 0;
+        for(String key: keys){
+            selectValue[index] = key;
+            selectText[index] = String.valueOf(map.get(key));
+            index++;
         }
     }
 
@@ -127,10 +124,20 @@ public class CellSelect {
         return selectValue;
     }
 
+    /**
+     * Gets band key.
+     *
+     * @return the band key
+     */
     public String getBandKey() {
         return bandKey;
     }
 
+    /**
+     * Gets target key.
+     *
+     * @return the target key
+     */
     public String getTargetKey() {
         return targetKey;
     }
@@ -144,7 +151,20 @@ public class CellSelect {
         return cascadeFlag;
     }
 
+    /**
+     * Gets source list.
+     *
+     * @return the source list
+     */
     public List getSourceList() {
         return sourceList;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getName() {
+        return name;
     }
 }

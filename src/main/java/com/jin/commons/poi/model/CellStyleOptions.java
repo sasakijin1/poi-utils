@@ -1,7 +1,9 @@
 package com.jin.commons.poi.model;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 
 /**
  * @ClassName: CellStyleOptions
@@ -19,6 +21,10 @@ public final class CellStyleOptions {
     private short titleSize = 12;
 
     private short dataSize = 11;
+
+    private HorizontalAlignment alignment = HorizontalAlignment.LEFT;
+
+    private VerticalAlignment verticalAlignment = VerticalAlignment.BOTTOM;
 
     private short titleFontColor = IndexedColors.BLACK.getIndex();
 
@@ -110,5 +116,21 @@ public final class CellStyleOptions {
 
     public void setDataFontColor(short dataFontColor) {
         this.dataFontColor = dataFontColor;
+    }
+
+    public HorizontalAlignment getAlignment() {
+        return alignment;
+    }
+
+    public void setAlignment(HorizontalAlignment alignment) {
+        this.alignment = alignment;
+    }
+
+    public VerticalAlignment getVerticalAlignment() {
+        return verticalAlignment;
+    }
+
+    public void setVerticalAlignment(VerticalAlignment verticalAlignment) {
+        this.verticalAlignment = verticalAlignment;
     }
 }
