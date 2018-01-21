@@ -7,14 +7,14 @@ import org.apache.poi.ss.usermodel.VerticalAlignment;
 import java.util.*;
 
 /**
- * The type Sheet options.
+ * The type Sheet settings.
  *
  * @author wujinglei
- * @ClassName: SheetOptions
+ * @ClassName: SheetSettings
  * @Description: 表配置
  * @date 2014年6月11日 上午10:36:28
  */
-public final class SheetOptions {
+public final class SheetSettings {
 	
 	/**
 	 * 表名
@@ -34,7 +34,7 @@ public final class SheetOptions {
 	/**
 	 * 列设置
 	 */
-	private CellOptions[] cellOptions;
+	private CellSettings[] cellSettings;
 	
 	/**
 	 * 导出的数据
@@ -56,7 +56,7 @@ public final class SheetOptions {
 	/**
 	 * 标题样式
 	 */
-	private CellStyleOptions titleStyle;
+	private CellStyleSettings titleStyle;
 
 	private Map<String,String> cellAddressMap = new HashMap();
 
@@ -73,77 +73,78 @@ public final class SheetOptions {
 	 * @Description:
 	 */
 	@SuppressWarnings("unused")
-	private SheetOptions(){
+	private SheetSettings(){
 
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetSeq the sheet seq
 	 * @param skipRows the skip rows
 	 * @author: wujinglei
 	 * @date: 2014年6月11日 上午10:40:41
-	 * @Description:按表名来构造(导入时用)
+	 * @Description:强制序号及忽略行数
 	 */
-	public SheetOptions(Integer sheetSeq,Integer skipRows){
+	public SheetSettings(Integer sheetSeq,Integer skipRows){
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetName the sheet name
 	 */
-	public SheetOptions(String sheetName){
+	public SheetSettings(String sheetName){
 		this.sheetName = sheetName;
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetName the sheet name
 	 * @param clazz     the clazz
 	 */
-	public SheetOptions(String sheetName,Class clazz){
+	public SheetSettings(String sheetName,Class clazz){
 		this.sheetName = sheetName;
 		this.dataClazzType = clazz;
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetName the sheet name
 	 * @param sheetSeq  the sheet seq
 	 * @param skipRows  the skip rows
+	 * 强制序号及忽略行数
 	 */
-	public SheetOptions(String sheetName,Integer sheetSeq,Integer skipRows){
+	public SheetSettings(String sheetName,Integer sheetSeq,Integer skipRows){
 		this.sheetName = sheetName;
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetName the sheet name
 	 * @param sheetSeq  the sheet seq
 	 * @param skipRows  the skip rows
-	 * @param clazz     the clazz
+	 * @param dataClazzType     the dataClazzType
 	 * @author: wujinglei
 	 * @date: 2014 -6-21 下午4:53:51
 	 * @Description:按表名来构造(导入时用)
 	 */
-	public SheetOptions(String sheetName,Integer sheetSeq,Integer skipRows,Class clazz){
+	public SheetSettings(String sheetName,Integer sheetSeq,Integer skipRows,Class dataClazzType){
 		this.sheetName = sheetName;
 		this.sheetSeq = sheetSeq;
 		this.skipRows = skipRows;
-		this.dataClazzType = clazz;
+		this.dataClazzType = dataClazzType;
 	}
 
 	/**
-	 * Instantiates a new Sheet options.
+	 * Instantiates a new Sheet settings.
 	 *
 	 * @param sheetName     the sheet name
 	 * @param exportData    the export data
@@ -152,40 +153,40 @@ public final class SheetOptions {
 	 * @date: 2014年6月11日 下午4:02:50
 	 * @Description:(导出时用)
 	 */
-	public SheetOptions(String sheetName,List exportData,Class dataClazzType){
+	public SheetSettings(String sheetName,List exportData,Class dataClazzType){
 		this.sheetName = sheetName;
 		this.exportData = exportData;
 		this.dataClazzType = dataClazzType;
 	}
 
 	/**
-	 * Add title sheet options.
+	 * Add title sheet settings.
 	 *
 	 * @param title      the title
 	 * @param titleStyle the title style
-	 * @return the sheet options
+	 * @return the sheet settings
 	 */
-	public SheetOptions addTitle(String title,CellStyleOptions titleStyle){
+	public SheetSettings addTitle(String title,CellStyleSettings titleStyle){
 		this.title = title;
 		this.titleStyle = titleStyle;
 		return this;
 	}
 
 	/**
-	 * Add title sheet options.
+	 * Add title sheet settings.
 	 *
 	 * @param title the title
-	 * @return the sheet options
+	 * @return the sheet settings
 	 */
-	public SheetOptions addTitle(String title){
+	public SheetSettings addTitle(String title){
 		this.title = title;
-		CellStyleOptions cellStyleOptions = new CellStyleOptions();
-		cellStyleOptions.setTitleFont("宋体");
-		cellStyleOptions.setTitleSize((short) 20);
-		cellStyleOptions.setTitleFontColor(IndexedColors.BLUE.getIndex());
-		cellStyleOptions.setAlignment(HorizontalAlignment.CENTER);
-		cellStyleOptions.setVerticalAlignment(VerticalAlignment.CENTER);
-		this.titleStyle = cellStyleOptions;
+		CellStyleSettings cellStyleSettings = new CellStyleSettings();
+		cellStyleSettings.setTitleFont("宋体");
+		cellStyleSettings.setTitleSize((short) 20);
+		cellStyleSettings.setTitleFontColor(IndexedColors.BLUE.getIndex());
+		cellStyleSettings.setAlignment(HorizontalAlignment.CENTER);
+		cellStyleSettings.setVerticalAlignment(VerticalAlignment.CENTER);
+		this.titleStyle = cellStyleSettings;
 		return this;
 	}
 
@@ -226,31 +227,31 @@ public final class SheetOptions {
 	}
 
 	/**
-	 * Get cell options cell options [ ].
+	 * Get cell settings cell settings [ ].
 	 *
-	 * @return the cellOptions
+	 * @return the cellSettings
 	 */
-	public CellOptions[] getCellOptions() {
-		return cellOptions;
+	public CellSettings[] getCellSettings() {
+		return cellSettings;
 	}
 
 	/**
-	 * Sets cell options.
+	 * Sets cell settings.
 	 *
-	 * @param cellOptions the cellOptions to set
+	 * @param cellSettings the cellSettings to set
 	 */
-	public void setCellOptions(CellOptions[] cellOptions) {
-		this.cellOptions = cellOptions;
+	public void setCellSettings(CellSettings[] cellSettings) {
+		this.cellSettings = cellSettings;
 	}
 
 	/**
-	 * Set cell options.
+	 * Set cell settings.
 	 *
 	 * @param list the list
 	 */
-	public void setCellOptions(List<CellOptions> list){
-		CellOptions[] cellOptions = new CellOptions[1];
-		this.cellOptions = list.toArray(cellOptions);
+	public void setCellSettings(List<CellSettings> list){
+		CellSettings[] cellSettings = new CellSettings[1];
+		this.cellSettings = list.toArray(cellSettings);
 	}
 
 	/**
@@ -366,7 +367,7 @@ public final class SheetOptions {
 	 *
 	 * @return the title style
 	 */
-	public CellStyleOptions getTitleStyle() {
+	public CellStyleSettings getTitleStyle() {
 		return titleStyle;
 	}
 

@@ -1,17 +1,19 @@
 package com.jin.commons.poi.model;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.util.List;
 import java.util.Map;
 
 /**
- * The type Cell options.
+ * The type Cell settings.
  *
  * @author wujinglei
- * @ClassName: CellOptions
+ * @ClassName: CellSettings
  * @Description: 单元格设置
  * @date 2014年6月10日 下午3:15:07
  */
-public final class CellOptions {
+public final class CellSettings {
 	
 	/**
 	 * 对象的属性名
@@ -32,6 +34,11 @@ public final class CellOptions {
 	 * 规则内容
 	 */
 	private Object cellRuleValue;
+
+	/**
+	 * 公式设置
+	 */
+	private FormulaSettings formulaSettings;
 	
 	/**
 	 * 固定值 
@@ -42,23 +49,49 @@ public final class CellOptions {
 	 * 固定值内容
 	 */
 	private Map<String,Object> fixedMap;
-	
+
+	/**
+	 * 是否是静态值
+	 */
 	private Boolean hasStaticValue = false;
 
+	/**
+	 * 静态值
+	 */
+	private String staticValue;
+
+	/**
+	 * 是否是下接选项
+	 */
 	private Boolean isSelect = false;
 
-	private CellSelect cellSelect;
+	/**
+	 * 下拉选择配置
+	 */
+	private CellSelectSettings cellSelectSettings;
 
-	private String staticValue;
-	
-	private CellOptions[] subCells;
-	
+	/**
+	 * 子CELL
+	 */
+	private CellSettings[] subCells;
+
+	/**
+	 * Cell对象类型，默认为自动
+	 */
 	private CellDataType cellDataType = CellDataType.AUTO;
 
-	private CellStyleOptions cellStyleOptions;
+	/**
+	 * Cell样式
+	 */
+	private CellStyleSettings cellStyleSettings;
 
 	private Class cellClass;
 
+	private String[] formulaGroupNames;
+
+	/**
+	 *  日期格式
+	 */
 	private DatePattern pattern;
 
 	/**
@@ -66,13 +99,12 @@ public final class CellOptions {
 	 * @date: 2014年6月10日 下午5:00:42
 	 * @Description:隐藏构造方法
 	 */
-	@SuppressWarnings("unused")
-	private CellOptions(){
+	private CellSettings(){
 		
 	}
 
 	/**
-	 * Instantiates a new Cell options.
+	 * Instantiates a new Cell settings.
 	 *
 	 * @param key     :属性名
 	 * @param colName :列名
@@ -80,23 +112,23 @@ public final class CellOptions {
 	 * @date: 2014年6月10日 下午5:08:32
 	 * @Description:设置关键字与显示列名
 	 */
-	public CellOptions(String key,String colName){
+	public CellSettings(String key,String colName){
 		this.key = key;
 		this.colName = colName;
-		this.cellStyleOptions = new CellStyleOptions();
+		this.cellStyleSettings = new CellStyleSettings();
 	}
 
 	/**
-	 * Instantiates a new Cell options.
+	 * Instantiates a new Cell settings.
 	 *
 	 * @param key          the key
 	 * @param colName      the col name
-	 * @param styleOptions the style options
+	 * @param styleSettings the style settings
 	 */
-	public CellOptions(String key,String colName,CellStyleOptions styleOptions){
+	public CellSettings(String key,String colName,CellStyleSettings styleSettings){
 		this.key = key;
 		this.colName = colName;
-		this.cellStyleOptions = styleOptions;
+		this.cellStyleSettings = styleSettings;
 	}
 
 	/**
@@ -163,11 +195,11 @@ public final class CellOptions {
 	}
 
 	/**
-	 * Get sub cells cell options [ ].
+	 * Get sub cells cell settings [ ].
 	 *
 	 * @return the subCells
 	 */
-	public CellOptions[] getSubCells() {
+	public CellSettings[] getSubCells() {
 		return subCells;
 	}
 
@@ -181,15 +213,15 @@ public final class CellOptions {
 	}
 
 	/**
-	 * Add cell data type cell options.
+	 * Add cell data type cell settings.
 	 *
 	 * @param cellDataType the cell data type
-	 * @return cell options
+	 * @return cell settings
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:49:06
 	 * @Description: 设置读取XLS单元格数据类型 ，按设置类型读取，出错时记录异常，跳过添加数据
 	 */
-	public CellOptions addCellDataType(CellDataType cellDataType) {
+	public CellSettings addCellDataType(CellDataType cellDataType) {
 		this.cellDataType = cellDataType;
 		if (this.cellDataType == CellDataType.DATE){
 			this.pattern = DatePattern.DATE_FORMAT_SEC;
@@ -197,110 +229,142 @@ public final class CellOptions {
 		return this;
 	}
 
+	public CellSettings addCellRule(CellRule cellRule){
+		this.cellRule = cellRule;
+		return this;
+	}
+
 	/**
-	 * Add cell rule cell options.
+	 * Add cell rule cell settings.
 	 *
 	 * @param cellRule      the cell rule
 	 * @param cellRuleValue the cell rule value
-	 * @return cell options
+	 * @return cell settings
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:50:43
 	 * @Description: 添加CELL规则功能
 	 */
-	public CellOptions addCellRule(CellRule cellRule,Object cellRuleValue) {
+	public CellSettings addCellRule(CellRule cellRule,Object cellRuleValue) {
 		this.cellRule = cellRule;
 		this.cellRuleValue = cellRuleValue;
 		return this;
 	}
 
 	/**
-	 * Add fixed map cell options.
+	 * Add fixed map cell settings.
 	 *
 	 * @param fixedMap the fixed map
-	 * @return cell options
+	 * @return cell settings
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:51:17
 	 * @Description: 添加固定项
 	 */
-	public CellOptions addFixedMap(Map<String, Object> fixedMap) {
+	public CellSettings addFixedMap(Map<String, Object> fixedMap) {
 		this.isFixedValue = true;
 		this.fixedMap = fixedMap;
 		return this;
 	}
 
 	/**
-	 * Add static value cell options.
+	 * Add static value cell settings.
 	 *
 	 * @param staticValue the static value
-	 * @return cell options
+	 * @return cell settings
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:51:31
 	 * @Description: 添加静态项
 	 */
-	public CellOptions addStaticValue(String staticValue) {
+	public CellSettings addStaticValue(String staticValue) {
 		this.hasStaticValue = true;
 		this.staticValue = staticValue;
 		return this;
 	}
 
 	/**
-	 * Add cell select cell options.
+	 * Add cell select cell settings.
 	 *
 	 * @param key        the key
 	 * @param name       the name
 	 * @param selectList the select list
-	 * @return the cell options
+	 * @return the cell settings
 	 */
-	public CellOptions addCellSelect(String key,String name,List selectList){
+	public CellSettings addCellSelect(String key,String name,List selectList){
 		if (selectList != null && !selectList.isEmpty()) {
 			this.isSelect = true;
-			this.cellSelect = new CellSelect(key, name, selectList);
+			this.cellSelectSettings = new CellSelectSettings(key, name, selectList);
 		}
 		return this;
 	}
 
-	public CellOptions isSelect(){
+	public CellSettings addCellSelect(String[] array){
 		this.isSelect = true;
-		if (this.cellSelect == null){
-			this.cellSelect = new CellSelect(new String[0]);
+		this.cellSelectSettings = new CellSelectSettings(array);
+		return this;
+	}
+
+	public CellSettings isSelect(){
+		this.isSelect = true;
+		if (this.cellSelectSettings == null){
+			this.cellSelectSettings = new CellSelectSettings(new String[0]);
 		}
 		return this;
 	}
 
-	public CellOptions setSelectBind(String bindKey,String targetKey){
+	public CellSettings setSelectBind(String bindKey,String targetKey){
 		this.isSelect = true;
-		if (this.cellSelect == null){
-			this.cellSelect = new CellSelect(new String[0]);
+		if (this.cellSelectSettings == null){
+			this.cellSelectSettings = new CellSelectSettings(new String[0]);
 		}
-		this.cellSelect.setBind(bindKey,targetKey);
+		this.cellSelectSettings.setBind(bindKey,targetKey);
 		return this;
 	}
 
 	/**
-	 * Add cell select cell options.
+	 * Add cell select cell settings.
 	 *
 	 * @param map the map
-	 * @return the cell options
+	 * @return the cell settings
 	 */
-	public CellOptions addCellSelect(Map map){
+	public CellSettings addCellSelect(Map map){
 		if (map != null && !map.isEmpty()){
 			this.isSelect = true;
-			this.cellSelect = new CellSelect(map);
+			this.cellSelectSettings = new CellSelectSettings(map);
 		}
 		return this;
 	}
 
 	/**
-	 * Add sub cells cell options.
+	 * Add sub cells cell settings.
 	 *
 	 * @param subCells the sub cells
-	 * @return cell options
+	 * @return cell settings
 	 * @author: wujinglei
 	 * @date: 2014 -8-13 下午5:51:42
 	 * @Description: 添加子项
 	 */
-	public CellOptions addSubCells(CellOptions[] subCells) {
+	public CellSettings addSubCells(CellSettings[] subCells) {
 		this.subCells = subCells;
+		return this;
+	}
+
+	public CellSettings addFormulaGroupName(String formulaGroupName){
+		if (this.formulaGroupNames == null){
+			this.formulaGroupNames = new String[]{formulaGroupName};
+		}else{
+			ArrayUtils.add(this.formulaGroupNames,formulaGroupName);
+		}
+		return this;
+	}
+
+	public CellSettings addFormulaGroupName(String[] formulaGroupNames){
+		this.formulaGroupNames = formulaGroupNames;
+		return this;
+	}
+
+	public CellSettings addFormulaSettings(FormulaType formulaType,String formulaGroupName){
+		this.cellDataType = CellDataType.FORMULA;
+		this.formulaSettings = new FormulaSettings(formulaType);
+		this.formulaGroupNames = new String[]{formulaGroupName};
 		return this;
 	}
 
@@ -332,12 +396,12 @@ public final class CellOptions {
 	}
 
 	/**
-	 * Gets cell style options.
+	 * Gets cell style settings.
 	 *
-	 * @return the cell style options
+	 * @return the cell style settings
 	 */
-	public CellStyleOptions getCellStyleOptions() {
-		return cellStyleOptions;
+	public CellStyleSettings getCellStyleSettings() {
+		return cellStyleSettings;
 	}
 
 	/**
@@ -346,7 +410,7 @@ public final class CellOptions {
 	 * @return the string [ ]
 	 */
 	public String[] getSelectTextList(){
-		return cellSelect.getSelectText();
+		return cellSelectSettings.getSelectText();
 	}
 
 	/**
@@ -355,7 +419,7 @@ public final class CellOptions {
 	 * @return the string [ ]
 	 */
 	public String[] getSelectValueList(){
-		return cellSelect.getSelectValue();
+		return cellSelectSettings.getSelectValue();
 	}
 
 	/**
@@ -364,10 +428,10 @@ public final class CellOptions {
 	 * @return the boolean
 	 */
 	public Boolean getSelectCascadeFlag(){
-		if (this.cellSelect == null){
+		if (this.cellSelectSettings == null){
 			return false;
 		}else {
-			return cellSelect.getCascadeFlag();
+			return cellSelectSettings.getCascadeFlag();
 		}
 	}
 
@@ -379,7 +443,7 @@ public final class CellOptions {
 		this.cellClass = cellClass;
 	}
 
-	public CellOptions addPattern(DatePattern pattern){
+	public CellSettings addPattern(DatePattern pattern){
 		this.pattern = pattern;
 		return this;
 	}
@@ -389,22 +453,30 @@ public final class CellOptions {
 	}
 
 	public String getBingKey(){
-		return this.cellSelect.getBandKey();
+		return this.cellSelectSettings.getBandKey();
 	}
 
 	public String getSelectTargetKey(){
-		return this.cellSelect.getTargetKey();
+		return this.cellSelectSettings.getTargetKey();
 	}
 
 	public List getSelectSourceList(){
-		return this.cellSelect.getSourceList();
+		return this.cellSelectSettings.getSourceList();
 	}
 
-	public CellSelect getCellSelect() {
-		return cellSelect;
+	public CellSelectSettings getCellSelectSettings() {
+		return cellSelectSettings;
 	}
 
 	public void setCellDataType(CellDataType cellDataType){
 		this.cellDataType = cellDataType;
+	}
+
+	public String[] getFormulaGroupNames() {
+		return formulaGroupNames;
+	}
+
+	public FormulaSettings getFormulaSettings() {
+		return formulaSettings;
 	}
 }

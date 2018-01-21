@@ -12,9 +12,8 @@ public enum CellRule {
 	EQUALSTO("equalsTo"),
 	LONG("long"),
 	INTEGER("integer"),
-	DOUBLE("double"),
-	DATEFORMAT("dateFormat");
-	
+	DOUBLE("double");
+
 	String value;  
 	
 	private CellRule( String value ) {  

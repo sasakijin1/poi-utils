@@ -1,26 +1,45 @@
 package com.jin.commons.poi.model;
 
-import com.jin.commons.poi.utils.BeanUtils;
-
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The type Cell select.
  *
  * @author wujinglei
+ * @date 2018 -01-12
  */
-public class CellSelect {
+public class CellSelectSettings {
 
+    /**
+     * 下拉文字
+     */
     private String[] selectText;
 
+    /**
+     * 下拉值
+     */
     private String[] selectValue;
 
+    /**
+     * 源列表
+     */
     private List sourceList;
 
+    /**
+     * 绑定的Key
+     */
     private String bandKey;
 
+    /**
+     * 联动下拉目标KEY
+     */
     private String targetKey;
 
+    /**
+     * 是否子级联动下拉 父节点为FALSE
+     */
     private Boolean cascadeFlag = false;
 
     private String key;
@@ -46,7 +65,7 @@ public class CellSelect {
      * @param value      the value
      * @param selectList the select list
      */
-    public CellSelect(String text, String value, List selectList) {
+    public CellSelectSettings(String text, String value, List selectList) {
         this.sourceList = selectList;
         this.setKeyAndValue(text,value,selectList);
         this.cascadeFlag = false;
@@ -57,7 +76,7 @@ public class CellSelect {
      *
      * @param map the map
      */
-    public CellSelect(Map<String, Object> map) {
+    public CellSelectSettings(Map<String, Object> map) {
         this.setKeyAndValue(map);
         this.cascadeFlag = false;
     }
@@ -67,7 +86,7 @@ public class CellSelect {
      *
      * @param arrays the arrays
      */
-    public CellSelect(String[] arrays) {
+    public CellSelectSettings(String[] arrays) {
         this.setKeyAndValue(arrays);
         this.cascadeFlag = false;
     }
@@ -160,10 +179,20 @@ public class CellSelect {
         return sourceList;
     }
 
+    /**
+     * Gets key.
+     *
+     * @return the key
+     */
     public String getKey() {
         return key;
     }
 
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }

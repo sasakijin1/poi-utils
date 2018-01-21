@@ -1,6 +1,6 @@
 package com.jin.commons.poi.model;
 
-import com.jin.commons.poi.model.CellOptions;
+import com.jin.commons.poi.model.CellSettings;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,7 +39,7 @@ public class WrongRecord {
 	/**
 	 * 列参数
 	 */
-	private CellOptions cellOptions;
+	private CellSettings cellSettings;
 
 	/**
 	 * 出错信息
@@ -105,11 +105,11 @@ public class WrongRecord {
 	 * @date: 2014年6月12日 上午10:34:11
 	 * @Description:
 	 */
-	public WrongRecord(int sheetNo, int row, int cell, CellOptions cellOptions, String wrongMsg, String handleType, boolean codeWrong) {
+	public WrongRecord(int sheetNo, int row, int cell, CellSettings cellSettings, String wrongMsg, String handleType, boolean codeWrong) {
 		this.sheetNo = sheetNo;
 		this.row = row;
 		this.cell = cell;
-		this.cellOptions = cellOptions;
+		this.cellSettings = cellSettings;
 		this.wrongMsg = wrongMsg;
 		this.handleType = handleType;
 		this.codeWrong = codeWrong;
@@ -171,17 +171,17 @@ public class WrongRecord {
 	}
 
 	/**
-	 * @return the cellOptions
+	 * @return the cellSettings
 	 */
-	public CellOptions getCellOptions() {
-		return cellOptions;
+	public CellSettings getCellSettings() {
+		return cellSettings;
 	}
 
 	/**
-	 * @param cellOptions the cellOptions to set
+	 * @param cellSettings the cellSettings to set
 	 */
-	public void setCellOptions(CellOptions cellOptions) {
-		this.cellOptions = cellOptions;
+	public void setCellSettings(CellSettings cellSettings) {
+		this.cellSettings = cellSettings;
 	}
 
 	/**

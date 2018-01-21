@@ -1,5 +1,6 @@
 package com.jin.commons.poi.model;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -10,14 +11,16 @@ import java.util.Date;
  * @date 2014年6月11日 上午9:54:54
  *
  */
-public class ErrorRecord {
+public class ErrorRecord implements Serializable{
+
+	private static final long serialVersionUID = -1720798939182303079L;
 
 	private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	/**
-	 * sheet序号
+	 * sheet 名称
 	 */
-	private int sheetNo;
+	private String sheetName;
 	
 	/**
 	 * 编码级错误
@@ -25,19 +28,14 @@ public class ErrorRecord {
 	private boolean codeError;
 	
 	/**
-	 * 行号
+	 * 坐标号
 	 */
-	private int row;
-	
-	/**
-	 * 列号
-	 */
-	private int cell;
+	private String adress;
 	
 	/**
 	 * 列参数
 	 */
-	private CellOptions cellOptions;
+	private CellSettings cellSettings;
 	
 	/**
 	 * 出错信息
@@ -56,11 +54,12 @@ public class ErrorRecord {
 	
 	@Override
 	public String toString() {
-		String positionStr = "";
-		if (sheetNo != 0 || row !=0 || cell != 0){
-			positionStr += "表号:" + sheetNo + ",行号:" + row + "," + "列号:" + cell;
-		}
-		return sdf.format(recordTime) + ": " + positionStr 	+ "<br>信息:" + errorMsg + "<br>处理方式：" + handleType;
+		StringBuffer positionStr = new StringBuffer();
+		positionStr.append(sdf.format(recordTime));
+		positionStr.append(":表号:").append(sheetName).append(",位置:").append(adress);
+		positionStr.append(",异常信息:").append(errorMsg);
+		positionStr.append(",处理方式:").append(handleType);
+		return positionStr.toString();
 	}
 
 	/**
@@ -68,7 +67,6 @@ public class ErrorRecord {
 	 * @date: 2014年6月12日 上午10:34:56
 	 * @Description:
 	 */
-	@SuppressWarnings("unused")
 	private ErrorRecord(){
 		
 	}
@@ -89,10 +87,10 @@ public class ErrorRecord {
 	 * @date: 2014年6月12日 上午11:08:42
 	 * @Description:
 	 */
-	public ErrorRecord(int sheetNo, int row, String errorMsg, String handleType,boolean codeError) {
+	public ErrorRecord(String sheetName,String adress, String errorMsg, String handleType,boolean codeError) {
 		super();
-		this.sheetNo = sheetNo;
-		this.row = row;
+		this.sheetName = sheetName;
+		this.adress = adress;
 		this.errorMsg = errorMsg;
 		this.handleType = handleType;
 		this.codeError = codeError;
@@ -103,11 +101,10 @@ public class ErrorRecord {
 	 * @date: 2014年6月12日 上午10:34:11
 	 * @Description:
 	 */
-	public ErrorRecord(int sheetNo, int row, int cell, CellOptions cellOptions, String errorMsg, String handleType,boolean codeError) {
-		this.sheetNo = sheetNo;
-		this.row = row;
-		this.cell = cell;
-		this.cellOptions = cellOptions;
+	public ErrorRecord(String sheetName,String adress, CellSettings cellSettings, String errorMsg, String handleType,boolean codeError) {
+		this.sheetName = sheetName;
+		this.adress = adress;
+		this.cellSettings = cellSettings;
 		this.errorMsg = errorMsg;
 		this.handleType = handleType;
 		this.codeError = codeError;
@@ -118,68 +115,46 @@ public class ErrorRecord {
 	 * @date: 2014年6月12日 上午11:05:04
 	 * @Description:
 	 */
-	public ErrorRecord(int sheetNo, String errorMsg, String handleType,boolean codeError) {
+	public ErrorRecord(String sheetName, String errorMsg, String handleType,boolean codeError) {
 		super();
-		this.sheetNo = sheetNo;
+		this.sheetName = sheetName;
 		this.errorMsg = errorMsg;
 		this.handleType = handleType;
 		this.codeError = codeError;
 	}
 
-	/**
-	 * @return the sheetNo
-	 */
-	public int getSheetNo() {
-		return sheetNo;
+	public SimpleDateFormat getSdf() {
+		return sdf;
+	}
+
+	public String getSheetName() {
+		return sheetName;
+	}
+
+	public void setSheetName(String sheetName) {
+		this.sheetName = sheetName;
+	}
+
+	public String getAdress() {
+		return adress;
+	}
+
+	public void setAdress(String adress) {
+		this.adress = adress;
 	}
 
 	/**
-	 * @param sheetNo the sheetNo to set
+	 * @return the cellSettings
 	 */
-	public void setSheetNo(int sheetNo) {
-		this.sheetNo = sheetNo;
+	public CellSettings getCellSettings() {
+		return cellSettings;
 	}
 
 	/**
-	 * @return the row
+	 * @param cellSettings the cellSettings to set
 	 */
-	public int getRow() {
-		return row;
-	}
-
-	/**
-	 * @param row the row to set
-	 */
-	public void setRow(int row) {
-		this.row = row;
-	}
-
-	/**
-	 * @return the cell
-	 */
-	public int getCell() {
-		return cell;
-	}
-
-	/**
-	 * @param cell the cell to set
-	 */
-	public void setCell(int cell) {
-		this.cell = cell;
-	}
-
-	/**
-	 * @return the cellOptions
-	 */
-	public CellOptions getCellOptions() {
-		return cellOptions;
-	}
-
-	/**
-	 * @param cellOptions the cellOptions to set
-	 */
-	public void setCellOptions(CellOptions cellOptions) {
-		this.cellOptions = cellOptions;
+	public void setCellSettings(CellSettings cellSettings) {
+		this.cellSettings = cellSettings;
 	}
 
 	/**

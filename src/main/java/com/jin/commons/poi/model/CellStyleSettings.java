@@ -6,13 +6,13 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 
 /**
- * @ClassName: CellStyleOptions
+ * @ClassName: CellStyleSettings
  * @Description: 样式
  * @author wujinglei
  * @date 2014年6月10日 下午3:15:07
  *
  */
-public final class CellStyleOptions {
+public final class CellStyleSettings {
 
     private String titleFont = "微软雅黑";
 

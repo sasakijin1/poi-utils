@@ -1,6 +1,6 @@
 package com.jin.commons.poi;
 
-import com.jin.commons.poi.model.SheetOptions;
+import com.jin.commons.poi.model.SheetSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +22,13 @@ public final class OfficeIoUtils {
 
 	private final static OfficeIoFactory IO_FACTORY = new OfficeIoFactory();
 
-	public static OfficeIoResult exportXlsxTemplate(SheetOptions sheets){
-		return IO_FACTORY.exportXlsxTemplate(new SheetOptions[]{sheets});
+	/**
+	 * 导出XLS模板
+	 * @param sheets
+	 * @return
+	 */
+	public static OfficeIoResult exportXlsxTemplate(SheetSettings sheets){
+		return IO_FACTORY.exportXlsxTemplate(new SheetSettings[]{sheets});
 	}
 
 	/**
@@ -33,20 +38,35 @@ public final class OfficeIoUtils {
 	 * @param sheets
 	 * @return
 	 */
-	public static OfficeIoResult exportXlsxTemplate(SheetOptions[] sheets){
+	public static OfficeIoResult exportXlsxTemplate(SheetSettings[] sheets){
 		return IO_FACTORY.exportXlsxTemplate(sheets);
 	}
 
 	/**
-	 *
+	 * 导出Xlsx
+	 * @param sheetSettings
+	 * @return
+	 */
+	public static OfficeIoResult exportXlsx(SheetSettings sheetSettings){
+		return IO_FACTORY.exportXlsx(new SheetSettings[]{sheetSettings});
+	}
+
+	/**
+	 * 导出Xlsx
+	 * @param sheetSettingsArray
+	 * @return
+	 */
+	public static OfficeIoResult exportXlsx(SheetSettings[] sheetSettingsArray){
+		return IO_FACTORY.exportXlsx(sheetSettingsArray);
+	}
+
+	/**
+	 * 导入Xlsx
+	 * @param inputStream
 	 * @param sheets
 	 * @return
 	 */
-	public static OfficeIoResult exportXlsx(SheetOptions[] sheets){
-		return IO_FACTORY.exportXlsx(sheets);
-	}
-
-	public static OfficeIoResult importXlsx(InputStream inputStream, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+	public static OfficeIoResult importXlsx(InputStream inputStream, SheetSettings[] sheets) {
 		return IO_FACTORY.importXlsx(inputStream, sheets);
 	}
 
@@ -57,11 +77,31 @@ public final class OfficeIoUtils {
 	 * @param file
 	 * @param sheets
 	 * @return
-	 * @throws Exception
-	 * @throws IOException
 	 */
-	public static OfficeIoResult importXlsx(File file, SheetOptions[] sheets) throws InvocationTargetException, IllegalAccessException {
+	public static OfficeIoResult importXlsx(File file, SheetSettings[] sheets) {
 		return IO_FACTORY.importXlsx(file, sheets);
+	}
+
+	/**
+	 * 导入Xlsx
+	 * @param inputStream
+	 * @param sheetSettings
+	 * @return
+	 */
+	public static OfficeIoResult importXlsx(InputStream inputStream, SheetSettings sheetSettings) {
+		return IO_FACTORY.importXlsx(inputStream, new SheetSettings[]{sheetSettings});
+	}
+
+	/**
+	 * @author: wujinglei
+	 * @date: 2014年6月11日 上午10:29:30
+	 * @Description: 导入
+	 * @param file
+	 * @param sheetSettings
+	 * @return
+	 */
+	public static OfficeIoResult importXlsx(File file, SheetSettings sheetSettings) {
+		return IO_FACTORY.importXlsx(file, new SheetSettings[]{sheetSettings});
 	}
 
 	/**
@@ -72,7 +112,7 @@ public final class OfficeIoUtils {
 	 * @param errRecordRows
 	 * @return
 	 */
-	public static OfficeIoResult exportErrorRecord(SheetOptions[] sheets, Map<Integer,List> errRecordRows){
+	public static OfficeIoResult exportErrorRecord(SheetSettings[] sheets, Map<Integer,List> errRecordRows){
 		return IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
 	}
 
@@ -85,7 +125,7 @@ public final class OfficeIoUtils {
 	 * @param filePath
 	 * @return
 	 */
-	public static boolean exportErrorFile(SheetOptions[] sheets,Map<Integer,List> errRecordRows, String filePath){
+	public static boolean exportErrorFile(SheetSettings[] sheets,Map<Integer,List> errRecordRows, String filePath){
 		OfficeIoResult errResult = IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
 		FileOutputStream output = null;
 		try {
