@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -36,6 +39,7 @@ public final class OfficeIoFactory {
 
     private final static Logger log = LoggerFactory.getLogger(OfficeIoFactory.class);
 
+    private MessageDigest messageDigest;
     /**
      * 导出异常数据记录
      *
@@ -769,19 +773,20 @@ public final class OfficeIoFactory {
         // 处理下拉选择问题
         if (cellSettings.getSelect()){
             if (!cellSettings.getSelectCascadeFlag()){
-                List<String> mapList = sheetSettings.getSelectMap().get(cellSettings.getKey() + "_TEXT");
+                String formulaString = cellSettings.getKey() + "_TEXT";
+                List<String> mapList = sheetSettings.getSelectMap().get(digestFormulaName(formulaString));
                 int matchIndex = mapList.indexOf(cellValue);
                 if (matchIndex != -1){
-                    cellValue = sheetSettings.getSelectMap().get(cellSettings.getKey() + "_TEXT_value").get(matchIndex);
+                    cellValue = sheetSettings.getSelectMap().get(digestFormulaName(formulaString) + "_value").get(matchIndex);
                 }else{
                     // TODO warn
                 }
             }else {
                 String formulaString = cellSettings.getKey() + "_" + selectTargetValueMap.get(cellSettings.getSelectTargetKey()) + "_TEXT";
-                List<String> mapList = sheetSettings.getSelectMap().get(formulaString);
+                List<String> mapList = sheetSettings.getSelectMap().get(digestFormulaName(formulaString));
                 int matchIndex = mapList.indexOf(cellValue);
                 if (matchIndex != -1){
-                    cellValue = sheetSettings.getSelectMap().get(formulaString + "_value").get(matchIndex);
+                    cellValue = sheetSettings.getSelectMap().get(digestFormulaName(formulaString) + "_value").get(matchIndex);
                 }else{
                     // TODO warn
                 }
@@ -961,14 +966,19 @@ public final class OfficeIoFactory {
             StringBuilder formulaString = new StringBuilder();
             if (cellSettings.getSelectCascadeFlag()){
                 String addressFlag = sheetSettings.getCellAddressMap().get(cellSettings.getSelectTargetKey());
-                formulaString.append("INDIRECT(\"")
-                        .append(cellSettings.getKey())
-                        .append("_\"&")
-                        .append(addressFlag)
-                        .append(cell.getAddress().getRow() + 1)
-                        .append("&\"_TEXT\")");
+                // =INDIRECT(VLOOKUP(A1,Sheet2!A:B,2,0))
+                formulaString.append("INDIRECT(VLOOKUP(");
+                formulaString.append("CONCATENATE(\"");
+                formulaString.append(cellSettings.getKey());
+                formulaString.append("_\",");
+                formulaString.append(addressFlag);
+                formulaString.append(cell.getAddress().getRow() + 1);
+                formulaString.append("),select_");
+                formulaString.append(sheetSettings.getSheetSeq());
+                formulaString.append("_text");
+                formulaString.append("!A:B,2,0))");
             }else {
-                formulaString.append(cellSettings.getKey()).append("_TEXT");
+                formulaString.append(digestFormulaName(cellSettings.getKey() + "_TEXT"));
             }
             setSelectDataValidation(sheet,formulaString.toString(),cell.getRowIndex(),cell.getColumnIndex());
         }
@@ -1104,8 +1114,8 @@ public final class OfficeIoFactory {
             if (thisCell.getSubCells() != null) {
                 for (CellSettings subCell : thisCell.getSubCells()) {
                     if (subCell.getSelect() && !subCell.getSelectCascadeFlag()) {
-                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell.getSelectTextList(), subCell.getSelectValueList());
-                        createSelectNameList(selectTextSheet.getSheetName(), workbook, subCell.getKey() + "_TEXT", selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
+                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell.getSelectTextList(), subCell.getSelectValueList(),false);
+                        createSelectNameList(selectTextSheet.getSheetName(), workbook, digestFormulaName(subCell.getKey() + "_TEXT"), selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
                         selectRowIndex++;
                         textMapping.put(subCell.getKey(),subCell.getSelectTextList());
                         valueMapping.put(subCell.getKey(),subCell.getSelectValueList());
@@ -1113,8 +1123,8 @@ public final class OfficeIoFactory {
                 }
             } else {
                 if (thisCell.getSelect() && !thisCell.getSelectCascadeFlag()) {
-                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell.getSelectTextList(), thisCell.getSelectValueList());
-                    createSelectNameList(selectTextSheet.getSheetName(), workbook, thisCell.getKey() + "_TEXT", selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
+                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell.getSelectTextList(), thisCell.getSelectValueList(),false);
+                    createSelectNameList(selectTextSheet.getSheetName(), workbook, digestFormulaName(thisCell.getKey() + "_TEXT"), selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
                     selectRowIndex++;
                     textMapping.put(thisCell.getKey(),thisCell.getSelectTextList());
                     valueMapping.put(thisCell.getKey(),thisCell.getSelectValueList());
@@ -1155,13 +1165,17 @@ public final class OfficeIoFactory {
                                     for (Object obj : subCell.getSelectSourceList()) {
                                         int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, subCell.getBingKey())));
                                         if (matchIndex >= 0) {
-                                            String[] addTextArray = new String[]{};
+                                            String formulaStr = digestFormulaName(subCell.getKey() + "_" + selectRowIndex + "_TEXT");
+                                            String[] addTextArray = new String[addTextSelectMap.get(targetTextArray[matchIndex]).size()];
                                             addTextSelectMap.get(targetTextArray[matchIndex]).toArray(addTextArray);
-                                            String[] addValueArray = new String[]{};
+                                            String[] addValueArray = new String[addValueSelectMap.get(targetValueArray[matchIndex]).size()];
                                             addValueSelectMap.get(targetValueArray[matchIndex]).toArray(addValueArray);
-                                            setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray);
-                                            setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray);
-                                            createSelectNameList(selectTextSheet.getSheetName(), workbook, subCell.getKey() + "_" + selectRowIndex + "_TEXT", selectRowIndex, addTextSelectMap.get(targetTextArray[matchIndex]).size(), subCell.getSelectCascadeFlag());
+                                            addTextArray[0] = subCell.getKey() + "_" + addTextArray[0];
+                                            addTextArray = ArrayUtils.insert(1,addTextArray,formulaStr);
+                                            addValueArray[0] = subCell.getKey() + "_" + addValueArray[0];
+                                            addValueArray = ArrayUtils.insert(1,addValueArray,formulaStr);
+                                            setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray,true);
+                                            createSelectNameList(selectTextSheet.getSheetName(), workbook, formulaStr, selectRowIndex, addTextSelectMap.get(targetTextArray[matchIndex]).size(), subCell.getSelectCascadeFlag());
                                             selectRowIndex++;
                                         }
                                     }
@@ -1202,12 +1216,17 @@ public final class OfficeIoFactory {
                                 }
 
                                 for (String key : mappingMap.keySet()) {
+                                    String formulaStr = digestFormulaName(thisCell.getKey() + "_" + key + "_TEXT");
                                     String[] addTextArray = new String[addTextSelectMap.get(key).size()];
                                     addTextSelectMap.get(key).toArray(addTextArray);
                                     String[] addValueArray = new String[addValueSelectMap.get(mappingMap.get(key)).size()];
                                     addValueSelectMap.get(mappingMap.get(key)).toArray(addValueArray);
-                                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray);
-                                    createSelectNameList(selectTextSheet.getSheetName(), workbook, thisCell.getKey() + "_" + key + "_TEXT", selectRowIndex, addTextSelectMap.get(key).size(), thisCell.getSelectCascadeFlag());
+                                    addTextArray[0] = thisCell.getKey() + "_" + addTextArray[0];
+                                    addTextArray = ArrayUtils.insert(1,addTextArray,formulaStr);
+                                    addValueArray[0] = thisCell.getKey() + "_" + addValueArray[0];
+                                    addValueArray = ArrayUtils.insert(1,addValueArray,formulaStr);
+                                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray,true);
+                                    createSelectNameList(selectTextSheet.getSheetName(), workbook, formulaStr, selectRowIndex, addTextSelectMap.get(key).size(), thisCell.getSelectCascadeFlag());
                                     selectRowIndex++;
                                 }
                             }
@@ -1226,9 +1245,12 @@ public final class OfficeIoFactory {
      * @param currentRow
      * @param textList
      */
-    private void createSelectRow(Row currentRow, String[] textList) {
+    private void createSelectRow(Row currentRow, String[] textList, boolean cascadeFlag) {
         if (textList != null && textList.length > 0) {
-            int i = 0;
+            int i = 2;
+            if (cascadeFlag){
+                i = 0;
+            }
             for (String cellValue : textList) {
                 Cell cell = currentRow.createCell(i++);
                 cell.setCellValue(cellValue);
@@ -1244,9 +1266,9 @@ public final class OfficeIoFactory {
      * @param textList
      * @param valueList
      */
-    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, String[] textList, String[] valueList) {
-        createSelectRow(selectTextSheet.createRow(selectRowIndex), textList);
-        createSelectRow(selectValueSheet.createRow(selectRowIndex), valueList);
+    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, String[] textList, String[] valueList, boolean cascadeFlag) {
+        createSelectRow(selectTextSheet.createRow(selectRowIndex), textList, cascadeFlag);
+        createSelectRow(selectValueSheet.createRow(selectRowIndex), valueList, cascadeFlag);
     }
 
     /**
@@ -1276,9 +1298,11 @@ public final class OfficeIoFactory {
      * @return
      */
     private static String createSelectFormula(int order, int size, boolean cascadeFlag) {
-        char start = 'A';
+        char start = 'C';
         if (cascadeFlag) {
-            start = 'B';
+            if (size == 0){
+                return "$" + start + "$" + order;
+            }
             if (size <= 25) {
                 char end = (char) (start + size - 1);
                 return "$" + start + "$" + order + ":$" + end + "$" + order;
@@ -1306,6 +1330,9 @@ public final class OfficeIoFactory {
                 return "$" + start + "$" + order + ":$" + endPrefix + endSuffix + "$" + order;
             }
         } else {
+            if (size == 0){
+                return "$" + start + "$" + order;
+            }
             if (size <= 26) {
                 char end = (char) (start + size - 1);
                 return "$" + start + "$" + order + ":$" + end + "$" + order;
@@ -1490,12 +1517,14 @@ public final class OfficeIoFactory {
                 Row textRow = textSheet.getRow(rowNum - 1);
                 Row valueRow = valueSheet.getRow(rowNum - 1);
 
-                for (int cellIndex = CellReference.convertColStringToIndex(cellAddress[0]); cellIndex <= CellReference.convertColStringToIndex(cellAddress[1]); cellIndex++) {
-                    Cell textCell = textRow.getCell(cellIndex);
-                    Cell valueCell = valueRow.getCell(cellIndex);
-                    if (textCell != null){
-                        sheetSettings.getSelectMap().get(name.getNameName()).add(textCell.getStringCellValue());
-                        sheetSettings.getSelectMap().get(name.getNameName() + "_value").add(valueCell.getStringCellValue());
+                if (cellAddress.length > 1){
+                    for (int cellIndex = CellReference.convertColStringToIndex(cellAddress[0]); cellIndex <= CellReference.convertColStringToIndex(cellAddress[1]); cellIndex++) {
+                        Cell textCell = textRow.getCell(cellIndex);
+                        Cell valueCell = valueRow.getCell(cellIndex);
+                        if (textCell != null){
+                            sheetSettings.getSelectMap().get(name.getNameName()).add(textCell.getStringCellValue());
+                            sheetSettings.getSelectMap().get(name.getNameName() + "_value").add(valueCell.getStringCellValue());
+                        }
                     }
                 }
             }
@@ -1534,5 +1563,19 @@ public final class OfficeIoFactory {
         }
         formulaStr.append(")");
         return formulaStr.toString();
+    }
+
+    private String digestFormulaName(String formulaStr) {
+        if (messageDigest == null){
+            try{
+                messageDigest = MessageDigest.getInstance("md5");
+            }catch (NoSuchAlgorithmException e){
+                log.error(e.getMessage(),e);
+                return formulaStr;
+            }
+        }
+
+        messageDigest.update(formulaStr.getBytes());
+        return "formulaStr_" + new BigInteger(1, messageDigest.digest()).toString(16);
     }
 }

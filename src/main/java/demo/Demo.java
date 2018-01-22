@@ -10,6 +10,9 @@ import com.jin.commons.poi.model.SheetSettings;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +20,10 @@ import java.util.Map;
 
 public class Demo {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+//        MessageDigest md5 = MessageDigest.getInstance("md5");
+//        md5.update("（你好）".getBytes());
+//        System.out.println(new BigInteger(1, md5.digest()).toString(16));
         exportXlsTemplate();
         OfficeIoResult officeIoResult = importXls();
 
@@ -71,8 +77,8 @@ public class Demo {
         List companyList = new ArrayList();
         companyList.add("A0001");
         companyList.add("A0002");
-        companyList.add("A0003");
-        companyList.add("A0004");
+        companyList.add("A0()&$%003");
+        companyList.add("A0（你好）004");
         companyList.add("A0005");
         String[] companyArray = new String[companyList.size()];
         companyList.toArray(companyArray);
@@ -104,18 +110,18 @@ public class Demo {
         Map<String,Object> ee = new HashMap();
         ee.put("id", "300");
         ee.put("name", "3灵灵");
-        ee.put("key", "A0003");
+        ee.put("key", "A0()&$%003");
         Map<String,Object> ff = new HashMap();
         ff.put("id", "301");
         ff.put("name", "3灵一");
-        ff.put("key", "A0003");
+        ff.put("key", "A0()&$%003");
         fundRule.add(ee);
         fundRule.add(ff);
 
         Map<String,Object> gg = new HashMap();
         gg.put("id", "400");
         gg.put("name", "4灵灵");
-        gg.put("key", "A0004");
+        gg.put("key", "A0（你好）004");
         Map<String,Object> hh = new HashMap();
         hh.put("id", "401");
         hh.put("name", "4灵一");
