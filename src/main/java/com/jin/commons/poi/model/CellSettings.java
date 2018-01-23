@@ -94,6 +94,8 @@ public final class CellSettings {
 	 */
 	private DatePattern pattern;
 
+	private Boolean skip = false;
+
 	/**
 	 * @author: wujinglei
 	 * @date: 2014年6月10日 下午5:00:42
@@ -478,5 +480,14 @@ public final class CellSettings {
 
 	public FormulaSettings getFormulaSettings() {
 		return formulaSettings;
+	}
+
+	public CellSettings skip(){
+		this.skip = true;
+		return this;
+	}
+
+	public Boolean isSkip(){
+		return this.skip;
 	}
 }

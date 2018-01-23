@@ -645,32 +645,36 @@ public final class OfficeIoFactory {
                             if (cells[cellIndex].getSubCells() != null) {
                                 CellSettings[] subCells = cells[cellIndex].getSubCells();
                                 for (int subCellIndex = 0; subCellIndex < subCells.length; subCellIndex++) {
-                                    cell = activeRow.getCell(excelCellIndex);
-                                    try {
-                                        obj = getCellValue(cell, thisSheetSettings, subCells[subCellIndex], workbook,selectTargetValueMap);
-                                    } catch (XSSFCellTypeException e) {
-                                        recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),subCells[subCellIndex],e);
-                                        continue rowLoop;
+                                    if (!subCells[subCellIndex].isSkip()){
+                                        cell = activeRow.getCell(excelCellIndex);
+                                        try {
+                                            obj = getCellValue(cell, thisSheetSettings, subCells[subCellIndex], workbook,selectTargetValueMap);
+                                        } catch (XSSFCellTypeException e) {
+                                            recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),subCells[subCellIndex],e);
+                                            continue rowLoop;
+                                        }
+                                        //判断规则
+                                        if (!checkRule(subCells[subCellIndex], cell, obj, result, sheetIndex, activeRow)) {
+                                            continue rowLoop;
+                                        }
+                                        setValueToObject(resultObj, subCells[subCellIndex], obj);
                                     }
-                                    //判断规则
-                                    if (!checkRule(subCells[subCellIndex], cell, obj, result, sheetIndex, activeRow)) {
-                                        continue rowLoop;
-                                    }
-                                    setValueToObject(resultObj, subCells[subCellIndex], obj);
                                     excelCellIndex++;
                                 }
                             } else {
-                                try {
-                                    obj = getCellValue(cell, thisSheetSettings, cells[cellIndex], workbook,selectTargetValueMap);
-                                } catch (XSSFCellTypeException e) {
-                                    recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),cells[cellIndex],e);
-                                    continue rowLoop;
+                                if (!cells[cellIndex].isSkip()){
+                                    try {
+                                        obj = getCellValue(cell, thisSheetSettings, cells[cellIndex], workbook,selectTargetValueMap);
+                                    } catch (XSSFCellTypeException e) {
+                                        recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),cells[cellIndex],e);
+                                        continue rowLoop;
+                                    }
+                                    //判断规则
+                                    if (!checkRule(cells[cellIndex], cell, obj, result, sheetIndex, activeRow)) {
+                                        continue rowLoop;
+                                    }
+                                    setValueToObject(resultObj, cells[cellIndex], obj);
                                 }
-                                //判断规则
-                                if (!checkRule(cells[cellIndex], cell, obj, result, sheetIndex, activeRow)) {
-                                    continue rowLoop;
-                                }
-                                setValueToObject(resultObj, cells[cellIndex], obj);
                                 excelCellIndex++;
                             }
                         }
