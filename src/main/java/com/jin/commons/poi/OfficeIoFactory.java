@@ -1396,11 +1396,8 @@ public final class OfficeIoFactory {
             // checkSkipRow
             if (sheetSettings.getSkipRows() == null) {
                 sheetSettings.setSkipRows(1);
-                for (CellSettings cellSettings : cells) {
-                    if (cellSettings.getSubCells() != null) {
+                if (Arrays.stream(cells).anyMatch(cellSettings -> cellSettings.getSubCells() != null)){
                         sheetSettings.setSkipRows(2);
-                        break;
-                    }
                 }
             }
 
