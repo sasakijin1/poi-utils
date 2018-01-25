@@ -28,7 +28,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportXlsxTemplate(SheetSettings sheets){
-		return IO_FACTORY.exportXlsxTemplate(new SheetSettings[]{sheets});
+		return IO_FACTORY.exportXlsxTemplate(sheets);
 	}
 
 	/**

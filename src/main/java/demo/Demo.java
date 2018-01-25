@@ -21,9 +21,6 @@ import java.util.Map;
 public class Demo {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-//        MessageDigest md5 = MessageDigest.getInstance("md5");
-//        md5.update("（你好）".getBytes());
-//        System.out.println(new BigInteger(1, md5.digest()).toString(16));
         exportXlsTemplate();
         OfficeIoResult officeIoResult = importXls();
 
@@ -42,7 +39,7 @@ public class Demo {
 
     private static OfficeIoResult importXls() {
 
-        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class);
+        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class).addTitle("TEST");
 
         sheet.setCellSettings(new CellSettings[]{
             new CellSettings("empName","empName"),
@@ -54,12 +51,16 @@ public class Demo {
             new CellSettings("inDate","inDate").addPattern(DatePattern.DATE_FORMAT_DAY),
             new CellSettings("phone","phone"),
             new CellSettings("status","status").isSelect(),
-            new CellSettings("companyBase","companyBase"),
-            new CellSettings("companyRatio","companyRatio"),
-            new CellSettings("companyAmount","companyAmount"),
-            new CellSettings("personalBase","personalBase"),
-            new CellSettings("personalRatio","personalRatio"),
-            new CellSettings("personalAmount","personalAmount")
+            new CellSettings("company","company").addSubCells(new CellSettings[]{
+                new CellSettings("companyBase","companyBase"),
+                new CellSettings("companyRatio","companyRatio"),
+                new CellSettings("companyAmount","companyAmount")
+            }),
+            new CellSettings("personal","personal").addSubCells(new CellSettings[]{
+                new CellSettings("personalBase","personalBase"),
+                new CellSettings("personalRatio","personalRatio"),
+                new CellSettings("personalAmount","personalAmount")
+            })
         });
 
         OfficeIoResult officeIoResult = OfficeIoUtils.importXlsx(new File("d:\\success.xlsx"),new SheetSettings[]{sheet});
@@ -129,7 +130,7 @@ public class Demo {
         fundRule.add(hh);
         fundRule.add(gg);
 
-        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class);
+        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class).addTitle("TEST");
         sheet.setCellSettings(new CellSettings[]{
             new CellSettings("empName","empName"),
             new CellSettings("companyId","companyId").addCellSelect(companyArray),
@@ -140,12 +141,16 @@ public class Demo {
             new CellSettings("inDate","inDate").addPattern(DatePattern.DATE_FORMAT_DAY),
             new CellSettings("phone","phone"),
             new CellSettings("status","status").addCellSelect(transactStatusFixed),
-            new CellSettings("companyBase","companyBase"),
-            new CellSettings("companyRatio","companyRatio"),
-            new CellSettings("companyAmount","companyAmount").addFormulaGroupName("total"),
-            new CellSettings("personalBase","personalBase"),
-            new CellSettings("personalRatio","personalRatio"),
-            new CellSettings("personalAmount","personalAmount").addFormulaGroupName("total")
+            new CellSettings("company","company").addSubCells(new CellSettings[]{
+                    new CellSettings("companyBase","companyBase"),
+                    new CellSettings("companyRatio","companyRatio"),
+                    new CellSettings("companyAmount","companyAmount").addFormulaGroupName("total")
+            }),
+            new CellSettings("personal","personal").addSubCells(new CellSettings[]{
+                    new CellSettings("personalBase","personalBase"),
+                    new CellSettings("personalRatio","personalRatio"),
+                    new CellSettings("personalAmount","personalAmount").addFormulaGroupName("total")
+            })
         });
 
         OfficeIoResult result = OfficeIoUtils.exportXlsxTemplate(sheet);
@@ -156,7 +161,7 @@ public class Demo {
 
     private static void exportXls(List list) throws IOException {
 
-        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class);
+        SheetSettings sheet = new SheetSettings("测试1",SocialDTO.class).addTitle("TEST");
         sheet.setCellSettings(new CellSettings[]{
                 new CellSettings("empName","empName"),
                 new CellSettings("companyId","companyId"),
@@ -167,13 +172,17 @@ public class Demo {
                 new CellSettings("inDate","inDate").addPattern(DatePattern.DATE_FORMAT_DAY),
                 new CellSettings("phone","phone"),
                 new CellSettings("status","status").isSelect(),
-                new CellSettings("companyBase","companyBase"),
-                new CellSettings("companyRatio","companyRatio"),
-                new CellSettings("companyAmount","companyAmount").addFormulaGroupName("total"),
-                new CellSettings("personalBase","personalBase"),
-                new CellSettings("personalRatio","personalRatio"),
-                new CellSettings("personalAmount","personalAmount").addFormulaGroupName("total"),
-                new CellSettings("total","total").addFormulaSettings(FormulaType.SUM,"total")
+                new CellSettings("company","company").addSubCells(new CellSettings[]{
+                        new CellSettings("companyBase","companyBase"),
+                        new CellSettings("companyRatio","companyRatio"),
+                        new CellSettings("companyAmount","companyAmount").addFormulaGroupName("total")
+                }),
+                new CellSettings("personal","personal").addSubCells(new CellSettings[]{
+                        new CellSettings("personalBase","personalBase"),
+                        new CellSettings("personalRatio","personalRatio"),
+                        new CellSettings("personalAmount","personalAmount").addFormulaGroupName("total")
+                })
+//                new CellSettings("total","total").addFormulaSettings(FormulaType.SUM,"total")
         });
         sheet.setExportData(list);
 

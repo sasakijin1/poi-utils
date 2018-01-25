@@ -48,7 +48,7 @@ public final class CellSettings {
 	/**
 	 * 固定值内容
 	 */
-	private Map<String,Object> fixedMap;
+	private Map fixedMap;
 
 	/**
 	 * 是否是静态值
@@ -156,7 +156,7 @@ public final class CellSettings {
 	 *
 	 * @return the fixedMap
 	 */
-	public Map<String, Object> getFixedMap() {
+	public Map getFixedMap() {
 		return fixedMap;
 	}
 
@@ -261,7 +261,7 @@ public final class CellSettings {
 	 * @date: 2014 -8-13 下午5:51:17
 	 * @Description: 添加固定项
 	 */
-	public CellSettings addFixedMap(Map<String, Object> fixedMap) {
+	public CellSettings addFixedMap(Map fixedMap) {
 		this.isFixedValue = true;
 		this.fixedMap = fixedMap;
 		return this;

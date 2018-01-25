@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The type Office io factory.
@@ -899,7 +900,7 @@ public final class OfficeIoFactory {
 
         //处理固定数据
         if (cellSettings.getFixedValue()) {
-            returnObj = cellSettings.getFixedMap().get(String.valueOf(returnObj));
+            returnObj = cellSettings.getFixedMap().get(returnObj);
         }
 
         if (returnObj == null) {
@@ -990,30 +991,35 @@ public final class OfficeIoFactory {
         if (dataBean != null) {
             if (cellSettings.getCellDataType() != CellDataType.FORMULA){
                 String reVal = getValue(cellSettings, dataBean);
-                if (!StringUtils.isBlank(reVal)) {
-                    switch (cellSettings.getCellDataType()){
-                        case NUMBER:
-                            cell.setCellValue(new BigDecimal((reVal)).doubleValue());
-                            break;
-                        case VARCHAR:
-                            cell.setCellValue(reVal);
-                            break;
-                        case DATE:
-                            cell.setCellValue(reVal);
-                            break;
-                        case BIGINT:
-                            cell.setCellValue(Long.valueOf(reVal));
-                            break;
-                        case INTEGER:
-                            cell.setCellValue(Integer.valueOf(reVal));
-                            break;
-                        case BOOLEAN:
-                            cell.setCellValue(Boolean.valueOf(reVal));
-                            break;
-                        default:
-                            cell.setCellValue(reVal);
+                if (!cellSettings.getFixedValue()){
+                    if (!StringUtils.isBlank(reVal)) {
+                        switch (cellSettings.getCellDataType()){
+                            case NUMBER:
+                                cell.setCellValue(new BigDecimal((reVal)).doubleValue());
+                                break;
+                            case VARCHAR:
+                                cell.setCellValue(reVal);
+                                break;
+                            case DATE:
+                                cell.setCellValue(reVal);
+                                break;
+                            case BIGINT:
+                                cell.setCellValue(Long.valueOf(reVal));
+                                break;
+                            case INTEGER:
+                                cell.setCellValue(Integer.valueOf(reVal));
+                                break;
+                            case BOOLEAN:
+                                cell.setCellValue(Boolean.valueOf(reVal));
+                                break;
+                            default:
+                                cell.setCellValue(reVal);
+                        }
                     }
+                }else {
+                    cell.setCellValue(reVal);
                 }
+
             }else {
                 FormulaSettings formulaSettings = cellSettings.getFormulaSettings();
                 if (formulaSettings != null){
@@ -1396,8 +1402,11 @@ public final class OfficeIoFactory {
             // checkSkipRow
             if (sheetSettings.getSkipRows() == null) {
                 sheetSettings.setSkipRows(1);
-                if (Arrays.stream(cells).anyMatch(cellSettings -> cellSettings.getSubCells() != null)){
+                for (CellSettings cellSettings : cells) {
+                    if (cellSettings.getSubCells() != null) {
                         sheetSettings.setSkipRows(2);
+                        break;
+                    }
                 }
             }
 

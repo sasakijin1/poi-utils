@@ -44,11 +44,6 @@ public final class OfficeIoResult<T> {
 	private final List<T> importList = new ArrayList<T>();
 	
 	/**
-	 * 原始数据
-	 */
-	private final List originalList = new ArrayList();
-	
-	/**
 	 * 导出结果集
 	 */
 	private final XSSFWorkbook resultWorkbook = new XSSFWorkbook();
@@ -93,20 +88,12 @@ public final class OfficeIoResult<T> {
 		if (sheets != null){
 			resultTotal = new Long[sheets.length];
 		}
-		if(sheets != null && sheets.length > 0){
-			for (SheetSettings sheetItem : sheets) {
-				originalList.add(sheetItem.getExportData());
-			}
-		}
 	}
 
-	/**
-	 * Get original list list.
-	 *
-	 * @return the list
-	 */
-	public final List getOriginalList(){
-		return originalList;
+	public OfficeIoResult(List<SheetSettings> sheets ){
+		if (sheets != null){
+			resultTotal = new Long[sheets.size()];
+		}
 	}
 
 	/**
