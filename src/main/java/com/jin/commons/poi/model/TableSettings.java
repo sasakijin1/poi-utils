@@ -47,9 +47,13 @@ public final class TableSettings {
     private Map<String,String> cellAddressMap = new HashMap();
 
 
+    /**
+     * Instantiates a new Table settings.
+     */
     public TableSettings(){
 
     }
+
     /**
      * Instantiates a new Sheet settings.
      *
@@ -97,6 +101,11 @@ public final class TableSettings {
         this.cellSettingsList = cellSettingsList;
     }
 
+    /**
+     * Sets export data.
+     *
+     * @param exportData the export data
+     */
     public void setExportData(List exportData) {
         this.exportData = exportData;
     }
@@ -119,4 +128,66 @@ public final class TableSettings {
         this.cellCount = cellCount;
     }
 
+    /**
+     * Gets skip rows.
+     *
+     * @return the skip rows
+     */
+    public Integer getSkipRows() {
+        return skipRows;
+    }
+
+    /**
+     * Gets table seq.
+     *
+     * @return the table seq
+     */
+    public Integer getTableSeq() {
+        return tableSeq;
+    }
+
+    /**
+     * Gets export data.
+     *
+     * @return the export data
+     */
+    public List getExportData() {
+        return exportData;
+    }
+
+    /**
+     * Gets data clazz type.
+     *
+     * @return the data clazz type
+     */
+    public Class getDataClazzType() {
+        return dataClazzType;
+    }
+
+    /**
+     * Gets title.
+     *
+     * @return the title
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Gets title style.
+     *
+     * @return the title style
+     */
+    public CellStyleSettings getTitleStyle() {
+        return titleStyle;
+    }
+
+    /**
+     * Gets cell address map.
+     *
+     * @return the cell address map
+     */
+    public Map<String, String> getCellAddressMap() {
+        return cellAddressMap;
+    }
 }
