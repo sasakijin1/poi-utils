@@ -46,7 +46,6 @@ public final class TableSettings {
 
     private Map<String,String> cellAddressMap = new HashMap();
 
-
     /**
      * Instantiates a new Table settings.
      */
@@ -189,5 +188,14 @@ public final class TableSettings {
      */
     public Map<String, String> getCellAddressMap() {
         return cellAddressMap;
+    }
+
+    /**
+     * Sets table seq.
+     *
+     * @param tableSeq the table seq
+     */
+    public void setTableSeq(Integer tableSeq) {
+        this.tableSeq = tableSeq;
     }
 }

@@ -15,6 +15,8 @@ import java.io.*;
 import java.util.*;
 
 /**
+ * The type Office io factory stream.
+ *
  * @author wujinglei
  */
 public class OfficeIoFactoryStream {
@@ -24,7 +26,8 @@ public class OfficeIoFactoryStream {
     /**
      * 导入XLSX
      *
-     * @param file   the file
+     * @param file              the file
+     * @param sheetSettingsList the sheet settings list
      * @return office io result
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
@@ -48,7 +51,8 @@ public class OfficeIoFactoryStream {
     /**
      * Import xlsx office io result.
      *
-     * @param inputStream the input stream
+     * @param inputStream       the input stream
+     * @param sheetSettingsList the sheet settings list
      * @return office io result
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
@@ -88,7 +92,8 @@ public class OfficeIoFactoryStream {
 
     /**
      * 导出异常记录
-     * @return
+     *
+     * @return office io result
      */
     protected final OfficeIoResult exportXlsxErrorRecord(){
         return null;
@@ -96,23 +101,25 @@ public class OfficeIoFactoryStream {
 
     /**
      * 导出模板
-     * @return
+     *
+     * @param sheetSettingsList the sheet settings list
+     * @return office io result
      */
     protected final OfficeIoResult exportXlsxTemplate(List<SheetSettings> sheetSettingsList){
         sheetSettingsList.stream().forEach(thisSheetSettings -> {
-            initSheetSettings();
+//            initSheetSettings();
         });
         return null;
     }
 
     /**
      * 列表
-     * @return
+     *
+     * @param sheetSettingsList the sheet settings list
+     * @return office io result
      */
     protected final OfficeIoResult exportXlsx(List<SheetSettings> sheetSettingsList){
-        sheetSettingsList.stream().forEach(thisSheetSettings -> {
-            initSheetSettings();
-        });
+
         return null;
     }
 
@@ -121,7 +128,7 @@ public class OfficeIoFactoryStream {
      * 创建SHEET
      */
     private void createSheet(){
-        initSheetSettings();
+//        initSheetSettings();
         createTable();
         graffitiData();
     }
@@ -177,14 +184,27 @@ public class OfficeIoFactoryStream {
     /**
      * 初始化SHEET配置
      */
-    private void initSheetSettings (){
-
+    private void initSheetSettings (List<SheetSettings> sheetSettingsList){
+        /*
+         *  0.sheetSeq
+         *  1.tableSeq
+         */
+        final Integer[] args = {0,0};
+        sheetSettingsList.stream().map(thisSheetSettings -> {
+            // setSheetSeq
+            thisSheetSettings.setSheetSeq(args[0]++);
+            // setTableSeq
+            thisSheetSettings.getTableSettingsList().forEach(thisTableSettings -> {
+                thisTableSettings.setTableSeq(args[1]++);
+            });
+            return thisSheetSettings;
+        });
     }
 
     /**
      * 初始化TABLE配置
      */
-    private void initTableSettings (){
+    private void initTableSettings (List<TableSettings> tableSettingsList){
 
     }
 

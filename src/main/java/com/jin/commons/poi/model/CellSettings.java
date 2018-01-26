@@ -97,6 +97,11 @@ public final class CellSettings {
 	private Boolean skip = false;
 
 	/**
+	 * cell顺序
+	 */
+	private Integer cellSeq;
+
+	/**
 	 * @author: wujinglei
 	 * @date: 2014年6月10日 下午5:00:42
 	 * @Description:隐藏构造方法
@@ -123,8 +128,8 @@ public final class CellSettings {
 	/**
 	 * Instantiates a new Cell settings.
 	 *
-	 * @param key          the key
-	 * @param colName      the col name
+	 * @param key           the key
+	 * @param colName       the col name
 	 * @param styleSettings the style settings
 	 */
 	public CellSettings(String key,String colName,CellStyleSettings styleSettings){
@@ -231,6 +236,12 @@ public final class CellSettings {
 		return this;
 	}
 
+	/**
+	 * Add cell rule cell settings.
+	 *
+	 * @param cellRule the cell rule
+	 * @return the cell settings
+	 */
 	public CellSettings addCellRule(CellRule cellRule){
 		this.cellRule = cellRule;
 		return this;
@@ -298,12 +309,23 @@ public final class CellSettings {
 		return this;
 	}
 
+	/**
+	 * Add cell select cell settings.
+	 *
+	 * @param array the array
+	 * @return the cell settings
+	 */
 	public CellSettings addCellSelect(String[] array){
 		this.isSelect = true;
 		this.cellSelectSettings = new CellSelectSettings(array);
 		return this;
 	}
 
+	/**
+	 * Is select cell settings.
+	 *
+	 * @return the cell settings
+	 */
 	public CellSettings isSelect(){
 		this.isSelect = true;
 		if (this.cellSelectSettings == null){
@@ -312,6 +334,13 @@ public final class CellSettings {
 		return this;
 	}
 
+	/**
+	 * Set select bind cell settings.
+	 *
+	 * @param bindKey   the bind key
+	 * @param targetKey the target key
+	 * @return the cell settings
+	 */
 	public CellSettings setSelectBind(String bindKey,String targetKey){
 		this.isSelect = true;
 		if (this.cellSelectSettings == null){
@@ -349,6 +378,12 @@ public final class CellSettings {
 		return this;
 	}
 
+	/**
+	 * Add formula group name cell settings.
+	 *
+	 * @param formulaGroupName the formula group name
+	 * @return the cell settings
+	 */
 	public CellSettings addFormulaGroupName(String formulaGroupName){
 		if (this.formulaGroupNames == null){
 			this.formulaGroupNames = new String[]{formulaGroupName};
@@ -358,11 +393,24 @@ public final class CellSettings {
 		return this;
 	}
 
+	/**
+	 * Add formula group name cell settings.
+	 *
+	 * @param formulaGroupNames the formula group names
+	 * @return the cell settings
+	 */
 	public CellSettings addFormulaGroupName(String[] formulaGroupNames){
 		this.formulaGroupNames = formulaGroupNames;
 		return this;
 	}
 
+	/**
+	 * Add formula settings cell settings.
+	 *
+	 * @param formulaType      the formula type
+	 * @param formulaGroupName the formula group name
+	 * @return the cell settings
+	 */
 	public CellSettings addFormulaSettings(FormulaType formulaType,String formulaGroupName){
 		this.cellDataType = CellDataType.FORMULA;
 		this.formulaSettings = new FormulaSettings(formulaType);
@@ -437,57 +485,141 @@ public final class CellSettings {
 		}
 	}
 
+	/**
+	 * Gets cell class.
+	 *
+	 * @return the cell class
+	 */
 	public Class getCellClass() {
 		return cellClass;
 	}
 
+	/**
+	 * Sets cell class.
+	 *
+	 * @param cellClass the cell class
+	 */
 	public void setCellClass(Class cellClass) {
 		this.cellClass = cellClass;
 	}
 
+	/**
+	 * Add pattern cell settings.
+	 *
+	 * @param pattern the pattern
+	 * @return the cell settings
+	 */
 	public CellSettings addPattern(DatePattern pattern){
 		this.pattern = pattern;
 		return this;
 	}
 
+	/**
+	 * Gets pattern.
+	 *
+	 * @return the pattern
+	 */
 	public DatePattern getPattern() {
 		return pattern;
 	}
 
+	/**
+	 * Get bing key string.
+	 *
+	 * @return the string
+	 */
 	public String getBingKey(){
 		return this.cellSelectSettings.getBandKey();
 	}
 
+	/**
+	 * Get select target key string.
+	 *
+	 * @return the string
+	 */
 	public String getSelectTargetKey(){
 		return this.cellSelectSettings.getTargetKey();
 	}
 
+	/**
+	 * Get select source list list.
+	 *
+	 * @return the list
+	 */
 	public List getSelectSourceList(){
 		return this.cellSelectSettings.getSourceList();
 	}
 
+	/**
+	 * Gets cell select settings.
+	 *
+	 * @return the cell select settings
+	 */
 	public CellSelectSettings getCellSelectSettings() {
 		return cellSelectSettings;
 	}
 
+	/**
+	 * Set cell data type.
+	 *
+	 * @param cellDataType the cell data type
+	 */
 	public void setCellDataType(CellDataType cellDataType){
 		this.cellDataType = cellDataType;
 	}
 
+	/**
+	 * Get formula group names string [ ].
+	 *
+	 * @return the string [ ]
+	 */
 	public String[] getFormulaGroupNames() {
 		return formulaGroupNames;
 	}
 
+	/**
+	 * Gets formula settings.
+	 *
+	 * @return the formula settings
+	 */
 	public FormulaSettings getFormulaSettings() {
 		return formulaSettings;
 	}
 
+	/**
+	 * Skip cell settings.
+	 *
+	 * @return the cell settings
+	 */
 	public CellSettings skip(){
 		this.skip = true;
 		return this;
 	}
 
+	/**
+	 * Is skip boolean.
+	 *
+	 * @return the boolean
+	 */
 	public Boolean isSkip(){
 		return this.skip;
+	}
+
+	/**
+	 * Gets cell seq.
+	 *
+	 * @return the cell seq
+	 */
+	public Integer getCellSeq() {
+		return cellSeq;
+	}
+
+	/**
+	 * Sets cell seq.
+	 *
+	 * @param cellSeq the cell seq
+	 */
+	public void setCellSeq(Integer cellSeq) {
+		this.cellSeq = cellSeq;
 	}
 }
