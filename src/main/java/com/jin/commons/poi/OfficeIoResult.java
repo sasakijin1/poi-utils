@@ -1,13 +1,11 @@
 package com.jin.commons.poi;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.jin.commons.poi.model.WrongRecord;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.jin.commons.poi.model.ErrorRecord;
 import com.jin.commons.poi.model.SheetSettings;
@@ -46,10 +44,12 @@ public final class OfficeIoResult<T> {
 	/**
 	 * 导出结果集
 	 */
-	private final XSSFWorkbook resultWorkbook = new XSSFWorkbook();
+	private XSSFWorkbook resultWorkbook = new XSSFWorkbook();
 
-	private SheetSettings[] sheetSettings;
-	
+	private List<SheetSettings> sheetSettings;
+
+	private Map<String, List<String>> selectMap = new HashMap();
+
 	/**
 	 * 返回成功的结果条数
 	 */
@@ -90,6 +90,11 @@ public final class OfficeIoResult<T> {
 		}
 	}
 
+	/**
+	 * Instantiates a new Office io result.
+	 *
+	 * @param sheets the sheets
+	 */
 	public OfficeIoResult(List<SheetSettings> sheets ){
 		if (sheets != null){
 			resultTotal = new Long[sheets.size()];
@@ -157,6 +162,10 @@ public final class OfficeIoResult<T> {
 	 */
 	public XSSFWorkbook getResultWorkbook() {
 		return resultWorkbook;
+	}
+
+	public void setresultWorkbook(Workbook workbook){
+		this.resultWorkbook = (XSSFWorkbook) workbook;
 	}
 
 	/**
@@ -231,7 +240,7 @@ public final class OfficeIoResult<T> {
 	/**
 	 * Print error record string.
 	 *
-	 * @return string
+	 * @return string string
 	 * @author: wujinglei
 	 * @date: 2014 -6-25 上午11:30:12
 	 * @Description: 打印异常记录
@@ -247,7 +256,7 @@ public final class OfficeIoResult<T> {
 	/**
 	 * Print wrong record string.
 	 *
-	 * @return string
+	 * @return string string
 	 * @author: wujinglei
 	 * @date: 2014 -6-25 上午11:30:12
 	 * @Description: 打印警告记录
@@ -322,19 +331,59 @@ public final class OfficeIoResult<T> {
 		this.msg = msg;
 	}
 
+	/**
+	 * Is completed boolean.
+	 *
+	 * @return the boolean
+	 */
 	public Boolean isCompleted() {
 		return isCompleted;
 	}
 
+	/**
+	 * Sets completed.
+	 *
+	 * @param completed the completed
+	 */
 	public void setCompleted(Boolean completed) {
 		isCompleted = completed;
 	}
 
-	public SheetSettings[] getSheetSettings() {
+	/**
+	 * Gets sheet settings.
+	 *
+	 * @return the sheet settings
+	 */
+	public List<SheetSettings> getSheetSettings() {
 		return sheetSettings;
 	}
 
-	void setSheetSettings(SheetSettings[] sheetSettings) {
+	/**
+	 * Sets sheet settings.
+	 *
+	 * @param sheetSettings the sheet settings
+	 */
+	public void setSheetSettings(SheetSettings[] sheetSettings) {
+		this.sheetSettings = new ArrayList<SheetSettings>(Arrays.asList(sheetSettings));
+	}
+
+	/**
+	 * Sets sheet settings.
+	 *
+	 * @param sheetSettings the sheet settings
+	 */
+	public void setSheetSettings(List<SheetSettings> sheetSettings) {
 		this.sheetSettings = sheetSettings;
 	}
+
+	/**
+	 * Gets select map.
+	 *
+	 * @return the select map
+	 */
+	public Map<String, List<String>> getSelectMap() {
+		return selectMap;
+	}
+
+
 }

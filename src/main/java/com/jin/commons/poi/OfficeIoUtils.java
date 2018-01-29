@@ -1,11 +1,14 @@
 package com.jin.commons.poi;
 
 import com.jin.commons.poi.model.SheetSettings;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +27,11 @@ public final class OfficeIoUtils {
 
 	/**
 	 * 导出XLS模板
-	 * @param sheets
+	 * @param sheetSettings
 	 * @return
 	 */
-	public static OfficeIoResult exportXlsxTemplate(SheetSettings sheets){
-		return IO_FACTORY.exportXlsxTemplate(sheets);
+	public static OfficeIoResult exportXlsxTemplate(SheetSettings sheetSettings){
+		return IO_FACTORY.exportXlsxTemplate(new ArrayList<SheetSettings>(Arrays.asList(new SheetSettings[]{sheetSettings})));
 	}
 
 	/**
@@ -39,7 +42,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportXlsxTemplate(SheetSettings[] sheets){
-		return IO_FACTORY.exportXlsxTemplate(sheets);
+		return IO_FACTORY.exportXlsxTemplate(new ArrayList<SheetSettings>(Arrays.asList(sheets)));
 	}
 
 	/**
@@ -48,7 +51,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportXlsx(SheetSettings sheetSettings){
-		return IO_FACTORY.exportXlsx(new SheetSettings[]{sheetSettings});
+		return IO_FACTORY.exportXlsx(new ArrayList<SheetSettings>(Arrays.asList(new SheetSettings[]{sheetSettings})));
 	}
 
 	/**
@@ -57,7 +60,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportXlsx(SheetSettings[] sheetSettingsArray){
-		return IO_FACTORY.exportXlsx(sheetSettingsArray);
+		return IO_FACTORY.exportXlsx(new ArrayList<SheetSettings>(Arrays.asList(sheetSettingsArray)));
 	}
 
 	/**
@@ -67,7 +70,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult importXlsx(InputStream inputStream, SheetSettings[] sheets) {
-		return IO_FACTORY.importXlsx(inputStream, sheets);
+		return IO_FACTORY.importXlsx(inputStream, new ArrayList<SheetSettings>(Arrays.asList(sheets)));
 	}
 
 	/**
@@ -79,7 +82,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult importXlsx(File file, SheetSettings[] sheets) {
-		return IO_FACTORY.importXlsx(file, sheets);
+		return IO_FACTORY.importXlsx(file, new ArrayList<SheetSettings>(Arrays.asList(sheets)));
 	}
 
 	/**
@@ -89,7 +92,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult importXlsx(InputStream inputStream, SheetSettings sheetSettings) {
-		return IO_FACTORY.importXlsx(inputStream, new SheetSettings[]{sheetSettings});
+		return IO_FACTORY.importXlsx(inputStream, new ArrayList<SheetSettings>(Arrays.asList(new SheetSettings[]{sheetSettings})));
 	}
 
 	/**
@@ -101,7 +104,7 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult importXlsx(File file, SheetSettings sheetSettings) {
-		return IO_FACTORY.importXlsx(file, new SheetSettings[]{sheetSettings});
+		return IO_FACTORY.importXlsx(file, new ArrayList<SheetSettings>(Arrays.asList(new SheetSettings[]{sheetSettings})));
 	}
 
 	/**
@@ -113,7 +116,8 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static OfficeIoResult exportErrorRecord(SheetSettings[] sheets, Map<Integer,List> errRecordRows){
-		return IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
+		return null;
+//		return IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
 	}
 
 	/**
@@ -126,24 +130,25 @@ public final class OfficeIoUtils {
 	 * @return
 	 */
 	public static boolean exportErrorFile(SheetSettings[] sheets,Map<Integer,List> errRecordRows, String filePath){
-		OfficeIoResult errResult = IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
-		FileOutputStream output = null;
-		try {
-			output = new FileOutputStream(new File(filePath));
-			errResult.getResultWorkbook().write(output);
-			return true;
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		} finally{
-			try {
-				output.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}  	    
-		}
+		return true;
+//		OfficeIoResult errResult = IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
+//		FileOutputStream output = null;
+//		try {
+//			output = new FileOutputStream(new File(filePath));
+//			errResult.getResultWorkbook().write(output);
+//			return true;
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//			return false;
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			return false;
+//		} finally{
+//			try {
+//				output.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 }

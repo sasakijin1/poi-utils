@@ -1,6 +1,5 @@
 package com.jin.commons.poi;
 
-import com.jin.commons.poi.exception.SheetIndexException;
 import com.jin.commons.poi.exception.XSSFCellTypeException;
 import com.jin.commons.poi.model.*;
 import com.jin.commons.poi.utils.BeanUtils;
@@ -17,6 +16,7 @@ import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.xssf.usermodel.XSSFDataValidationConstraint;
+import org.apache.poi.xssf.usermodel.XSSFName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,459 +24,58 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * The type Office io factory.
+ * The type Office io factory stream.
  *
  * @author wujinglei
- * @ClassName: OfficeIOFactory
- * @Description: OfficeIOFactory
- * @date 2014年6月11日 上午9:46:36
  */
-public final class OfficeIoFactory {
+public class OfficeIoFactory {
 
     private final static Logger log = LoggerFactory.getLogger(OfficeIoFactory.class);
 
     /**
-     * 导出异常数据记录
-     *
-     * @param sheets        the sheets
-     * @param errRecordRows the err record rows
-     * @return office io result
-     * @author: wujinglei
-     * @date: 2014 -6-20 下午2:22:31
-     * @Description: 导出errorRecord记录
-     */
-    protected final OfficeIoResult exportXlsxErrorRecord(SheetSettings[] sheets, Map<Integer, List> errRecordRows) {
-        //实例化返回对象
-        OfficeIoResult result = new OfficeIoResult(sheets);
-        //循环构建sheet
-        Set<Integer> keySet = errRecordRows.keySet();
-        for (Integer index : keySet) {
-            try{
-
-                SheetSettings thisSheetSettings = checkCellSettings(result.getResultWorkbook(), sheets[index], index);
-
-                //创建sheet
-                Sheet sheet = result.getResultWorkbook().createSheet(sheets[index].getSheetName());
-
-                boolean hasSubTitle = buildHeader(result.getResultWorkbook(), sheet, thisSheetSettings);
-
-                int startRow = hasSubTitle?1:0;
-                //写入出错行记录
-                List rowList = errRecordRows.get(index);
-                int errorRowCount = rowList.size();
-                for (int errorIndex = 0; errorIndex < errorRowCount; errorIndex++) {
-                    Row row = sheet.createRow(errorIndex + 1 + startRow);
-                    if (rowList.get(errorIndex) instanceof Row) {
-                        Iterator<Cell> it = ((Row) rowList.get(errorIndex)).cellIterator();
-                        int cellIndex = 0;
-                        while (it.hasNext()) {
-                            Cell sourceCell = it.next();
-                            Cell targetCell = row.createCell(cellIndex++);
-                            targetCell.setCellType(CellType.STRING);
-                            if (CellType.NUMERIC.equals(sourceCell.getCellTypeEnum())) {
-                                targetCell.setCellValue(sourceCell.getNumericCellValue());
-                            }
-                            if (CellType.STRING.equals(sourceCell.getCellTypeEnum())) {
-                                targetCell.setCellValue(sourceCell.getRichStringCellValue());
-                            }
-                            if (CellType.FORMULA.equals(sourceCell.getCellTypeEnum())) {
-                                targetCell.setCellValue(sourceCell.getCellFormula());
-                            }
-                            if (CellType.BOOLEAN.equals(sourceCell.getCellTypeEnum())) {
-                                targetCell.setCellValue(sourceCell.getBooleanCellValue());
-                            }
-                            if (CellType.ERROR.equals(sourceCell.getCellTypeEnum())) {
-                                targetCell.setCellValue(sourceCell.getErrorCellValue());
-                            }
-                        }
-                    } else if (rowList.get(errorIndex) instanceof String[]) {
-                        String[] values = (String[]) rowList.get(errorIndex);
-                        for (int i = 0; i < values.length; i++) {
-                            Cell targetCell = row.createCell(i);
-                            targetCell.setCellType(CellType.STRING);
-                            targetCell.setCellValue(values[i]);
-                        }
-                    }
-                }
-            }catch (Exception e){
-                log.error(e.getMessage(),e);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 导出XLSX模板
-     *
-     * @param sheetSettingsArray the sheet settings array
-     * @return office io result
-     * @author: wujinglei
-     * @date: 2014年6月12日 上午11:41:37
-     * @Description: 导出模板
-     */
-    protected final OfficeIoResult exportXlsxTemplate(SheetSettings[] sheetSettingsArray) {
-        // 实例化返回对象
-        OfficeIoResult result = new OfficeIoResult(sheetSettingsArray);
-        // 循环构建sheet
-        for (int sheetIndex = 0; sheetIndex < sheetSettingsArray.length; sheetIndex++) {
-            SheetSettings thisSheetSettings;
-            try {
-                thisSheetSettings = checkCellSettings(result.getResultWorkbook(), sheetSettingsArray[sheetIndex], sheetIndex);
-            } catch (SheetIndexException e) {
-                result.addErrorRecord(new ErrorRecord(e.getMessage(), "跳过本SHEET所有处理", true));
-                log.error(e.getMessage(),e);
-                continue;
-            }
-            // 创建sheet
-            Sheet sheet = result.getResultWorkbook().createSheet(thisSheetSettings.getSheetName());
-
-            if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
-                buildTitle(sheet,thisSheetSettings);
-            }
-
-            // 构建标题
-            boolean hasSubTitle = buildHeader(result.getResultWorkbook(), sheet, thisSheetSettings);
-
-            createHideSelectSheet(result.getResultWorkbook(), thisSheetSettings, sheetIndex);
-
-            // 导入DEMO数据
-            buildDemoDataList(result.getResultWorkbook(), hasSubTitle, result, thisSheetSettings, sheet);
-        }
-        return result;
-    }
-
-    /**
-     * 构建标题
-     * @param sheet
-     * @param sheetSettings
-     */
-    private void buildTitle(Sheet sheet,SheetSettings sheetSettings){
-        Row titleRow = sheet.createRow(0);
-        Cell titleCell = titleRow.createCell(0);
-        titleCell.setCellValue(sheetSettings.getTitle());
-        CellStyle style = sheet.getWorkbook().createCellStyle();
-        Font font = sheet.getWorkbook().createFont();
-
-        style.setFillForegroundColor(sheetSettings.getTitleStyle().getTitleForegroundColor());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setBorderRight(sheetSettings.getTitleStyle().getTitleBorder()[0]);
-        style.setBorderTop(sheetSettings.getTitleStyle().getTitleBorder()[1]);
-        style.setBorderLeft(sheetSettings.getTitleStyle().getTitleBorder()[2]);
-        style.setBorderBottom(sheetSettings.getTitleStyle().getTitleBorder()[3]);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        font.setFontName(sheetSettings.getTitleStyle().getTitleFont());
-        font.setColor(sheetSettings.getTitleStyle().getTitleFontColor());
-        font.setFontHeightInPoints(sheetSettings.getTitleStyle().getTitleSize());
-        style.setFont(font);
-
-        titleCell.setCellStyle(style);
-        CellRangeAddress region = new CellRangeAddress(0, 0, 0, sheetSettings.getCellCount() - 1);
-        sheet.addMergedRegion(region);
-        RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
-        RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
-        RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
-        RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
-    }
-
-    /**
-     * 构建表头
-     *
-     * @param sheet
-     * @param sheetSettings
-     * @return
-     */
-    private boolean buildHeader(Workbook workbook, Sheet sheet, SheetSettings sheetSettings) {
-        int startRow = 0;
-        if (!StringUtils.isBlank(sheetSettings.getTitle())){
-            startRow = 1;
-        }
-        // 设置列头
-        boolean hasSubTitle = buildTopHeader(workbook, sheet, sheetSettings, sheet.createRow(startRow));
-        // 处理子列头
-        if (hasSubTitle) {
-            buildSubHeader(workbook, sheet, sheetSettings, sheet.createRow(startRow + 1));
-        }
-        return hasSubTitle;
-    }
-
-    /**
-     * 构建顶部表头
-     *
-     * @param sheet
-     * @param sheetSettings
-     * @param headerRow
-     * @return
-     */
-    private boolean buildTopHeader(Workbook workbook, Sheet sheet, SheetSettings sheetSettings, Row headerRow) {
-        boolean hasSubTitle = false;
-        for (int titleIndex = 0, xlsCellIndex = 0; titleIndex < sheetSettings.getCellSettings().length; titleIndex++) {
-            CellSettings thisCellsSettings = sheetSettings.getCellSettings()[titleIndex];
-            // 构建CELL
-            Cell cell = createHeaderCell(workbook, headerRow, xlsCellIndex, thisCellsSettings);
-
-            cell.setCellValue(thisCellsSettings.getColName());
-
-            if (thisCellsSettings.getSubCells() != null) {
-                hasSubTitle = true;
-                sheet.addMergedRegion(new CellRangeAddress(headerRow.getRowNum(), headerRow.getRowNum(), xlsCellIndex, xlsCellIndex + thisCellsSettings.getSubCells().length - 1));
-                xlsCellIndex += thisCellsSettings.getSubCells().length;
-            } else {
-                xlsCellIndex++;
-            }
-        }
-        return hasSubTitle;
-    }
-
-    /**
-     * 构建子表头
-     *
-     * @param sheet
-     * @param sheetSettings
-     * @param subRow
-     */
-    private void buildSubHeader(Workbook workbook, Sheet sheet, SheetSettings sheetSettings, Row subRow) {
-        for (int titleIndex = 0, xlsCellIndex = 0; titleIndex < sheetSettings.getCellSettings().length; titleIndex++) {
-            CellSettings parentCellSettings = sheetSettings.getCellSettings()[titleIndex];
-            if (parentCellSettings.getSubCells() != null) {
-                for (int subTitleIndex = 0; subTitleIndex < parentCellSettings.getSubCells().length; subTitleIndex++) {
-                    CellSettings thisCellsSettings = parentCellSettings.getSubCells()[subTitleIndex];
-                    Cell subTitleCell = createHeaderCell(workbook, subRow, xlsCellIndex, thisCellsSettings);
-                    subTitleCell.setCellValue(thisCellsSettings.getColName());
-                    xlsCellIndex++;
-                }
-            } else {
-                CellRangeAddress region = new CellRangeAddress(subRow.getRowNum() - 1, subRow.getRowNum(), xlsCellIndex, xlsCellIndex);
-                sheet.addMergedRegion(region);
-                // 处理合并单元格的边框问题
-                RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
-                RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
-                RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
-                RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
-                xlsCellIndex++;
-            }
-        }
-    }
-
-    /**
-     * 创建DEMO数据
-     * @param workbook
-     * @param hasSubTitle
-     * @param result
-     * @param thisSheetSettings
-     * @param sheet
-     */
-    private void buildDemoDataList(Workbook workbook, boolean hasSubTitle, OfficeIoResult result, SheetSettings thisSheetSettings, Sheet sheet) {
-
-        CellSettings[] cells = thisSheetSettings.getCellSettings();
-        //循环新增每一条数据
-        int startRowIndex = 1;
-        if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
-            startRowIndex += 1;
-        }
-        if (hasSubTitle) {
-            startRowIndex += 1;
-        }
-
-        for (int demoIndex = 0; demoIndex < 1; demoIndex++) {
-            Row row = sheet.createRow(demoIndex + startRowIndex);
-            //循环列配置为第一列赋值
-            for (int cellIndex = 0, xlsCellIndex = 0; cellIndex < cells.length; cellIndex++) {
-                CellSettings thisCellSettings = cells[cellIndex];
-                if (thisCellSettings.getSubCells() == null) {
-                    //构建一个CELL
-                    Cell cell = createDataCell(workbook, row, xlsCellIndex, thisCellSettings);
-                    try {
-                        setCellDataValue(sheet, cell,thisSheetSettings, thisCellSettings, null);
-                    } catch (Exception e) {
-                        log.warn(e.getMessage());
-                        continue;
-                    }
-                    xlsCellIndex++;
-                } else {
-                    for (int subIndex = 0; subIndex < cells[cellIndex].getSubCells().length; subIndex++) {
-                        CellSettings thisSubCellSettings = cells[cellIndex].getSubCells()[subIndex];
-                        // 构建一个CELL
-                        Cell cell = createDataCell(workbook, row, xlsCellIndex, thisSubCellSettings);
-                        try {
-                            setCellDataValue(sheet, cell,thisSheetSettings, thisSubCellSettings, null);
-                        } catch (Exception e) {
-                            log.warn(e.getMessage());
-                            continue;
-                        }
-                        xlsCellIndex++;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 构建数据内容
-     *
-     * @param hasSubTitle
-     * @param thisSheetSettings
-     * @param result
-     * @param sheet
-     * @param sheetIndex
-     * @return
-     */
-    private long buildDataList(Workbook workbook, boolean hasSubTitle, SheetSettings thisSheetSettings, OfficeIoResult result, Sheet sheet, Integer sheetIndex) {
-
-        //取出当前sheet所要导出的数据
-        List dataList = thisSheetSettings.getExportData();
-        CellSettings[] cells = thisSheetSettings.getCellSettings();
-
-        //循环新增每一条数据
-        long successCount = 0;
-        int startRowIndex = 1;
-        if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
-            startRowIndex += 1;
-        }
-        if (hasSubTitle) {
-            startRowIndex += 1;
-        }
-
-        if (dataList != null && dataList.size() > 0) {
-            rowLoop:
-            for (int dataIndex = 0; dataIndex < dataList.size(); dataIndex++) {
-                //取出当前行的数据对象
-                Object bean = dataList.get(dataIndex);
-                //新增行
-                Row row = sheet.createRow(dataIndex + startRowIndex);
-                //循环列配置为第一列赋值
-                for (int cellIndex = 0, xlsCellIndex = 0; cellIndex < cells.length; cellIndex++) {
-                    CellSettings thisCellSettings = cells[cellIndex];
-
-                    if (cells[cellIndex].getSubCells() == null) {
-                        //构建一个CELL
-                        Cell cell = createDataCell(workbook, row, xlsCellIndex, thisCellSettings);
-                        //写入内容
-                        try {
-                            setCellDataValue(sheet, cell,thisSheetSettings, thisCellSettings, bean);
-                        } catch (Exception e) {
-                            recordSetCellDataValueException(result, row, thisSheetSettings, cell.getAddress().formatAsString(), thisCellSettings, e);
-                            continue rowLoop;
-                        }
-                        xlsCellIndex++;
-                    } else {
-                        for (int subIndex = 0; subIndex < cells[cellIndex].getSubCells().length; subIndex++) {
-                            CellSettings thisSubCellSettings = cells[cellIndex].getSubCells()[subIndex];
-                            //构建一个CELL
-                            Cell cell = createDataCell(workbook, row, xlsCellIndex, thisSubCellSettings);
-                            //写入内容
-                            try {
-                                setCellDataValue(sheet, cell, thisSheetSettings,thisSubCellSettings, bean);
-                            } catch (Exception e) {
-                                recordSetCellDataValueException(result, row, thisSheetSettings, cell.getAddress().formatAsString(), thisCellSettings, e);
-                                continue rowLoop;
-                            }
-                            xlsCellIndex++;
-                        }
-                    }
-                }
-                //记录成功结果
-                successCount++;
-            }
-        }
-
-        return successCount;
-    }
-
-    /**
-     * 导出XLSX
-     *
-     * @param sheetSettingsArray the sheet settings array
-     * @return office io result
-     * @Description:导出
-     * @author: wujinglei
-     * @date: 2014年6月11日 上午10:01:54
-     */
-    protected final OfficeIoResult exportXlsx(SheetSettings[] sheetSettingsArray) {
-        //实例化返回对象
-        OfficeIoResult result = new OfficeIoResult(sheetSettingsArray);
-        //循环构建sheet
-        for (int sheetIndex = 0; sheetIndex < sheetSettingsArray.length; sheetIndex++) {
-            SheetSettings thisSheetSettings;
-            try {
-                thisSheetSettings = checkCellSettings(result.getResultWorkbook(), sheetSettingsArray[sheetIndex], sheetIndex);
-            } catch (SheetIndexException e) {
-                result.addErrorRecord(new ErrorRecord(e.getMessage(), "跳过本SHEET所有处理", true));
-                log.error(e.getMessage(),e);
-                continue;
-            }
-            //创建sheet
-            Sheet sheet = result.getResultWorkbook().createSheet(thisSheetSettings.getSheetName());
-
-            if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
-                buildTitle(sheet,thisSheetSettings);
-            }
-
-            boolean hasSubTitle = buildHeader(result.getResultWorkbook(), sheet, thisSheetSettings);
-
-            result.getResultTotal()[sheetIndex] = buildDataList(result.getResultWorkbook(), hasSubTitle, thisSheetSettings, result, sheet, sheetIndex);
-
-            if (result.getErrors().size() > 0){
-                result.setCompleted(false);
-            }
-        }
-        cleanCacheData(sheetSettingsArray);
-
-        result.setSheetSettings(sheetSettingsArray);
-
-        return result;
-    }
-
-    /**
      * 导入XLSX
      *
-     * @param file   the file
-     * @param sheets the sheets
+     * @param file              the file
+     * @param sheetSettingsList the sheet settings list
      * @return office io result
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
      * @Description: 导入XLSX
      */
-    protected final OfficeIoResult importXlsx(File file, SheetSettings[] sheets) {
+    protected final OfficeIoResult importXlsx(File file,  List<SheetSettings> sheetSettingsList) {
         // 按文件取出工作簿
         Workbook workbook = null;
         try {
             workbook = create(new FileInputStream(file));
-        } catch (InvalidFormatException e) {
-            log.error(e.getMessage());
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage());
-        } catch (IOException e) {
+        } catch (InvalidFormatException | IOException e) {
             log.error(e.getMessage());
         }
-        return loadWorkbook(workbook, sheets);
+        return loadWorkbook(workbook, sheetSettingsList);
     }
 
     /**
      * Import xlsx office io result.
      *
-     * @param inputStream the input stream
-     * @param sheets      the sheets
+     * @param inputStream       the input stream
+     * @param sheetSettingsList the sheet settings list
      * @return office io result
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:24:29
      * @Description: 导入XLS
      */
-    protected final OfficeIoResult importXlsx(InputStream inputStream, SheetSettings[] sheets) {
+    protected final OfficeIoResult importXlsx(InputStream inputStream, List<SheetSettings> sheetSettingsList) {
         // 按文件取出工作簿
         Workbook workbook = null;
         try {
             workbook = create(inputStream);
-        } catch (InvalidFormatException e) {
-            log.error(e.getMessage());
-        } catch (FileNotFoundException e) {
-            log.error(e.getMessage());
-        } catch (IOException e) {
+        } catch (InvalidFormatException | IOException e) {
             log.error(e.getMessage());
         }
-        return loadWorkbook(workbook, sheets);
+        return loadWorkbook(workbook, sheetSettingsList);
     }
 
     /**
@@ -493,220 +92,615 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * check cell Rules
-     * @param obj
-     * @param result
-     * @param sheetIndex
-     * @param activeRow
-     * @return
-     * @author: wujinglei
-     * @date: 2014年7月8日 下午4:46:02
-     * @Description: 判断规则
-     */
-    private Boolean checkRule(CellSettings cellSettings, Cell cell, Object obj, OfficeIoResult result, int sheetIndex, Row activeRow) {
-        if (cellSettings.getCellRule() != null) {
-            switch (cellSettings.getCellRule()) {
-                case REQUIRED:
-                    if (obj == null || StringUtils.isBlank(String.valueOf(obj))) {
-                        result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列不能为空", "跳过行处理", false));
-                        result.addErrorRecordRow(sheetIndex, activeRow);
-                        return false;
-                    }
-                    break;
-                case EQUALSTO:
-                    if (!cellSettings.getCellRuleValue().equals(obj)) {
-                        result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值"
-                                + cellSettings.getCellRuleValue() + "与读取出的值" + obj + "不相等", "跳过行处理", false));
-                        result.addErrorRecordRow(sheetIndex, activeRow);
-                        return false;
-                    }
-                case LONG:
-                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
-                        try {
-                            Long.parseLong(String.valueOf(obj));
-                        } catch (NumberFormatException ex) {
-                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是长整型", "跳过行处理", false));
-                            result.addErrorRecordRow(sheetIndex, activeRow);
-                            return false;
-                        }
-                    }
-                case INTEGER:
-                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
-                        try {
-                            Integer.parseInt(String.valueOf(obj));
-                        } catch (NumberFormatException ex) {
-                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是整型", "跳过行处理", false));
-                            result.addErrorRecordRow(sheetIndex, activeRow);
-                            return false;
-                        }
-                    }
-                case DOUBLE:
-                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
-                        try {
-                            Double.parseDouble(String.valueOf(obj));
-                        } catch (NumberFormatException ex) {
-                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是浮点型", "跳过行处理", false));
-                            result.addErrorRecordRow(sheetIndex, activeRow);
-                            return false;
-                        }
-                    }
-                default:
-                    break;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * load Workwook data
+     * 读取配置
      * @param workbook
-     * @param sheets
+     * @param sheetSettingsList
      * @return
-     * @author: wujinglei
-     * @date: 2014年6月11日 上午11:17:50
-     * @Description: 按sheetSettings读取workbook中的数据
      */
-    private OfficeIoResult loadWorkbook(Workbook workbook, SheetSettings[] sheets) {
-
-        OfficeIoResult result = new OfficeIoResult(sheets);
-
+    private OfficeIoResult loadWorkbook(Workbook workbook,List<SheetSettings> sheetSettingsList){
+        OfficeIoResult result = new OfficeIoResult(sheetSettingsList);
+        result.setresultWorkbook(workbook);
         //文件异常时处理
         if (workbook == null) {
             result.addErrorRecord(new ErrorRecord("文件无法读取或读取异常", "跳过所有处理", true));
             return result;
         }
 
-        long successCount = 0;
+        // check selectSheet
+        getSelectSheetMap(result);
 
-        // 记录处理的数字
-        result.setResultTotal(new Long[sheets.length]);
-        result.setFileTotalRow(new Long[sheets.length]);
+        sheetSettingsList = initSheetSettings(sheetSettingsList);
 
-        for (int sheetIndex = 0; sheetIndex < sheets.length; sheetIndex++) {
-            SheetSettings thisSheetSettings;
-            try {
-                thisSheetSettings = checkCellSettings(workbook, sheets[sheetIndex], sheetIndex);
-            } catch (SheetIndexException e) {
-                result.addErrorRecord(new ErrorRecord(e.getMessage(), "跳过本SHEET所有处理", true));
-                log.error(e.getMessage(),e);
-                continue;
-            }
+        sheetSettingsList.parallelStream().forEach(thisSheetSettings -> loadSheet(result, thisSheetSettings));
 
-            CellSettings[] cells = thisSheetSettings.getCellSettings();
+//        cleanCacheData(sheets);
 
-            // check selectSheet
-            getSelectSheetMap(workbook,thisSheetSettings,sheetIndex);
-
-            // 取提对应的sheet
-            Sheet sheet = workbook.getSheetAt(thisSheetSettings.getSheetSeq());
-            List sheetList = new ArrayList();
-            // 获取表中的总行数
-            int rowsNum = sheet.getLastRowNum();
-            //记录读取的总数
-            result.setTotalRowCount(sheetIndex, (long) (rowsNum - thisSheetSettings.getSkipRows() + 1));
-
-            // 循环每一行
-            rowLoop:
-            for (int row = 0; row <= rowsNum; row++) {
-                //判断是否是在skipRow之内
-                if (row < thisSheetSettings.getSkipRows()) {
-                    continue;
-                }
-                // 取的当前行
-                Row activeRow = sheet.getRow(row);
-                // 判断当前行记录是否有有效
-                if (activeRow != null) {
-                    // 第一行的各列放在一个MAP中
-                    Object resultObj;
-                    try {
-                        if (thisSheetSettings.getDataClazzType() != null){
-                            resultObj = thisSheetSettings.getDataClazzType().newInstance();
-                        }else {
-                            resultObj = new HashMap();
-                        }
-                    } catch (InstantiationException e) {
-                        log.error(e.getMessage());
-                        resultObj = new HashMap();
-                    } catch (IllegalAccessException e) {
-                        log.error(e.getMessage());
-                        resultObj = new HashMap();
-                    }
-                    // 循环每一列按列所给的参数进行处理
-                    int excelCellIndex = 0;
-                    Map<String,String> selectTargetValueMap = new HashMap();
-                    for (int cellIndex = 0; cellIndex < cells.length; cellIndex++) {
-                        Cell cell = activeRow.getCell(excelCellIndex);
-                        if (cell != null) {
-                            Object obj;
-                            // 处理合并单元合问题
-                            if (cells[cellIndex].getSubCells() != null) {
-                                CellSettings[] subCells = cells[cellIndex].getSubCells();
-                                for (int subCellIndex = 0; subCellIndex < subCells.length; subCellIndex++) {
-                                    if (!subCells[subCellIndex].isSkip()){
-                                        cell = activeRow.getCell(excelCellIndex);
-                                        try {
-                                            obj = getCellValue(cell, thisSheetSettings, subCells[subCellIndex], workbook,selectTargetValueMap);
-                                        } catch (XSSFCellTypeException e) {
-                                            recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),subCells[subCellIndex],e);
-                                            continue rowLoop;
-                                        }
-                                        //判断规则
-                                        if (!checkRule(subCells[subCellIndex], cell, obj, result, sheetIndex, activeRow)) {
-                                            continue rowLoop;
-                                        }
-                                        setValueToObject(resultObj, subCells[subCellIndex], obj);
-                                    }
-                                    excelCellIndex++;
-                                }
-                            } else {
-                                if (!cells[cellIndex].isSkip()){
-                                    try {
-                                        obj = getCellValue(cell, thisSheetSettings, cells[cellIndex], workbook,selectTargetValueMap);
-                                    } catch (XSSFCellTypeException e) {
-                                        recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),cells[cellIndex],e);
-                                        continue rowLoop;
-                                    }
-                                    //判断规则
-                                    if (!checkRule(cells[cellIndex], cell, obj, result, sheetIndex, activeRow)) {
-                                        continue rowLoop;
-                                    }
-                                    setValueToObject(resultObj, cells[cellIndex], obj);
-                                }
-                                excelCellIndex++;
-                            }
-                        }
-                    }
-                    //将前当行所对应的MAP放入List中
-                    sheetList.add(resultObj);
-                } else {
-                    result.addWrongRecord(new WrongRecord(sheetIndex, row, "导入的文件中空行数据", "跳过行处理", false));
-                    continue;
-                }
-                //记录成功结果
-                successCount++;
-            }
-            //将成功条数放入result中
-            result.getResultTotal()[sheetIndex] = successCount;
-            //将处理后的sheet的数据放入返回对象中
-            result.addSheetList(sheetList);
-
-            if (result.getErrors().size() > 0){
-                result.setCompleted(false);
-            }
-        }
-
-        cleanCacheData(sheets);
-
-        result.setSheetSettings(sheets);
+        result.setSheetSettings(sheetSettingsList);
 
         return result;
     }
 
     /**
+     * 导出异常记录
+     *
+     * @return office io result
+     */
+    protected final OfficeIoResult exportXlsxErrorRecord(){
+//        //实例化返回对象
+//        OfficeIoResult result = new OfficeIoResult(sheets);
+//        //循环构建sheet
+//        Set<Integer> keySet = errRecordRows.keySet();
+//        for (Integer index : keySet) {
+//            try{
+//
+//                SheetSettings thisSheetSettings = checkCellSettings(result.getResultWorkbook(), sheets[index], index);
+//
+//                //创建sheet
+//                Sheet sheet = result.getResultWorkbook().createSheet(sheets[index].getSheetName());
+//
+//                boolean hasSubTitle = buildHeader(result.getResultWorkbook(), sheet, thisSheetSettings);
+//
+//                int startRow = hasSubTitle?1:0;
+//                //写入出错行记录
+//                List rowList = errRecordRows.get(index);
+//                int errorRowCount = rowList.size();
+//                for (int errorIndex = 0; errorIndex < errorRowCount; errorIndex++) {
+//                    Row row = sheet.createRow(errorIndex + 1 + startRow);
+//                    if (rowList.get(errorIndex) instanceof Row) {
+//                        Iterator<Cell> it = ((Row) rowList.get(errorIndex)).cellIterator();
+//                        int cellIndex = 0;
+//                        while (it.hasNext()) {
+//                            Cell sourceCell = it.next();
+//                            Cell targetCell = row.createCell(cellIndex++);
+//                            targetCell.setCellType(CellType.STRING);
+//                            if (CellType.NUMERIC.equals(sourceCell.getCellTypeEnum())) {
+//                                targetCell.setCellValue(sourceCell.getNumericCellValue());
+//                            }
+//                            if (CellType.STRING.equals(sourceCell.getCellTypeEnum())) {
+//                                targetCell.setCellValue(sourceCell.getRichStringCellValue());
+//                            }
+//                            if (CellType.FORMULA.equals(sourceCell.getCellTypeEnum())) {
+//                                targetCell.setCellValue(sourceCell.getCellFormula());
+//                            }
+//                            if (CellType.BOOLEAN.equals(sourceCell.getCellTypeEnum())) {
+//                                targetCell.setCellValue(sourceCell.getBooleanCellValue());
+//                            }
+//                            if (CellType.ERROR.equals(sourceCell.getCellTypeEnum())) {
+//                                targetCell.setCellValue(sourceCell.getErrorCellValue());
+//                            }
+//                        }
+//                    } else if (rowList.get(errorIndex) instanceof String[]) {
+//                        String[] values = (String[]) rowList.get(errorIndex);
+//                        for (int i = 0; i < values.length; i++) {
+//                            Cell targetCell = row.createCell(i);
+//                            targetCell.setCellType(CellType.STRING);
+//                            targetCell.setCellValue(values[i]);
+//                        }
+//                    }
+//                }
+//            }catch (Exception e){
+//                log.error(e.getMessage(),e);
+//            }
+//        }
+//        return result;
+        return null;
+    }
+
+    /**
+     * 导出模板
+     *
+     * @param sheetSettingsList the sheet settings list
+     * @return office io result
+     */
+    protected final OfficeIoResult exportXlsxTemplate(List<SheetSettings> sheetSettingsList){
+
+        // 实例化返回对象
+        OfficeIoResult result = new OfficeIoResult(sheetSettingsList);
+
+        sheetSettingsList = initSheetSettings(sheetSettingsList);
+
+        // 处理下拉列表
+        createHideSelectSheet(result.getResultWorkbook(),sheetSettingsList);
+
+        sheetSettingsList.stream().forEach(thisSheetSettings -> createSheet(result, thisSheetSettings,true));
+
+        return result;
+    }
+
+    /**
+     * 列表
+     *
+     * @param sheetSettingsList the sheet settings list
+     * @return office io result
+     */
+    protected final OfficeIoResult exportXlsx(List<SheetSettings> sheetSettingsList){
+
+        // 实例化返回对象
+        OfficeIoResult result = new OfficeIoResult(sheetSettingsList);
+
+        sheetSettingsList = initSheetSettings(sheetSettingsList);
+
+        // 处理下拉列表
+        createHideSelectSheet(result.getResultWorkbook(),sheetSettingsList);
+
+        sheetSettingsList.parallelStream().forEach(thisSheetSettings -> createSheet(result, thisSheetSettings,false));
+
+        return result;
+    }
+
+
+    /**
+     * 创建SHEET
+     */
+    private void createSheet(OfficeIoResult result, SheetSettings sheetSettings,Boolean isDemo){
+        // 创建sheet
+        Sheet sheet = result.getResultWorkbook().createSheet(sheetSettings.getSheetName());
+        /*
+         * 1.表格开始行
+         */
+        int[] args = {0};
+
+        // TODO 获取所有TABLE的开始行
+
+        sheetSettings.getTableSettingsList().stream().forEach(thisTableSettings -> {
+            createTable(sheet,thisTableSettings,args[0]++);
+            if (isDemo){
+                // 导入DEMO数据
+                setDemoData(sheet,sheetSettings,thisTableSettings);
+            }else {
+                graffitiData(result,sheet,thisTableSettings,sheetSettings);
+            }
+        });
+    }
+
+    /**
+     * 读取SHEET页
+     * @param result
+     * @param sheetSettings
+     */
+    private void loadSheet(OfficeIoResult result,SheetSettings sheetSettings){
+        sheetSettings.getTableSettingsList().stream().forEach(tableSettings -> loadTableData(
+                result,
+                result.getResultWorkbook().getSheet(sheetSettings.getSheetName()),
+                sheetSettings,
+                tableSettings
+        ));
+    }
+
+    /**
+     * 填写DEMO模板数据
+     * @param sheet
+     * @param sheetSettings
+     * @param tableSettings
+     */
+    private void setDemoData(Sheet sheet,SheetSettings sheetSettings, TableSettings tableSettings) {
+        int[] args = {tableSettings.getSkipRows()};
+        List<CellSettings> cellArrays = getAllCell(tableSettings.getCellSettingsList());
+        IntStream
+                .range(0,5)
+                .forEach(index -> {
+                    Row row = sheet.createRow(index + args[0]);
+                    cellArrays.parallelStream().forEach(cellSettings -> {
+                        //构建一个CELL
+                        Cell cell = createDataCell(row, cellSettings);
+                        try {
+                            setCellDataValue(sheet, cell,sheetSettings,tableSettings, cellSettings, null);
+                        } catch (Exception e) {
+                            log.warn(e.getMessage());
+                        }
+                    });
+                });
+    }
+
+    /**
+     * 读取SHEET配置
+     */
+    private void loadSheetSettings(){
+
+    }
+
+    /**
+     * 读取TABLE配置
+     */
+    private void loadTablesSettings(){
+
+    }
+
+    /**
+     * 读取CELL配置
+     */
+    private void loadCellSettings(){
+
+    }
+
+    /**
+     * 创建表格
+     */
+    private void createTable(Sheet sheet, TableSettings tableSettings,Integer startRowNum){
+        // 构建标题
+        if (!StringUtils.isBlank(tableSettings.getTitle())){
+            createTableTitle(sheet,tableSettings);
+        }
+
+        // 构建表头
+        createHeader(sheet,tableSettings,sheet.createRow(startRowNum));
+    }
+
+    /**
+     * 创建表格标题
+     */
+    private void createTableTitle(Sheet sheet, TableSettings tableSettings){
+        Row titleRow = sheet.createRow(0);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue(tableSettings.getTitle());
+        CellStyle style = sheet.getWorkbook().createCellStyle();
+        Font font = sheet.getWorkbook().createFont();
+
+        style.setFillForegroundColor(tableSettings.getTitleStyle().getTitleForegroundColor());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        style.setBorderRight(tableSettings.getTitleStyle().getTitleBorder()[0]);
+        style.setBorderTop(tableSettings.getTitleStyle().getTitleBorder()[1]);
+        style.setBorderLeft(tableSettings.getTitleStyle().getTitleBorder()[2]);
+        style.setBorderBottom(tableSettings.getTitleStyle().getTitleBorder()[3]);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        font.setFontName(tableSettings.getTitleStyle().getTitleFont());
+        font.setColor(tableSettings.getTitleStyle().getTitleFontColor());
+        font.setFontHeightInPoints(tableSettings.getTitleStyle().getTitleSize());
+        style.setFont(font);
+
+        titleCell.setCellStyle(style);
+        CellRangeAddress region = new CellRangeAddress(0, 0, 0, tableSettings.getCellCount() - 1);
+        sheet.addMergedRegion(region);
+        RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
+        RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
+        RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
+        RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
+    }
+
+    /**
+     * 读取Table Data
+     *
+     * @param result
+     * @param sheet
+     * @param tableSettings
+     * @param sheetSettings
+     */
+    private void loadTableData(OfficeIoResult result, Sheet sheet,SheetSettings sheetSettings,TableSettings tableSettings){
+
+        List tableDataList = new ArrayList();
+
+        /*
+         * 1. rowIndex
+         */
+        int[] args = {tableSettings.getSkipRows()};
+        while (!tableIsClosed(sheet,args[0])){
+            Row activeRow = sheet.getRow(args[0]++);
+            if (activeRow != null) {
+                // 第一行的各列放在一个MAP中
+                final Object[] resultObj = {new Object()};
+                try {
+                    if (tableSettings.getDataClazzType() != null){
+                        resultObj[0] = tableSettings.getDataClazzType().newInstance();
+                    }else {
+                        resultObj[0] = new HashMap();
+                    }
+                } catch (InstantiationException | IllegalAccessException e) {
+                    log.error(e.getMessage());
+                    resultObj[0] = new HashMap();
+                }
+                // 循环每一列按列所给的参数进行处理
+                Map<String,String> selectTargetValueMap = new HashMap();
+                List<CellSettings> allCellSettings = getAllCell(tableSettings.getCellSettingsList());
+                allCellSettings.parallelStream().forEach(cellSettings -> {
+                    Cell cell = activeRow.getCell(cellSettings.getCellSeq());
+                    if (cell != null) {
+                        Object obj = null;
+                        if (!cellSettings.isSkip()){
+                            try {
+                                obj = getCellValue(result,cell, sheetSettings,tableSettings, cellSettings,selectTargetValueMap);
+                            } catch (XSSFCellTypeException e) {
+                                // TODO 需重新处理异常内容
+                                // recordSetCellDataValueException(result,activeRow,thisSheetSettings, cell.getAddress().formatAsString(),cellSettings,e);
+//                                continue rowLoop;
+                            }
+                            //判断规则
+                            if (!checkRule(cellSettings, cell, obj, result, sheetSettings.getSheetSeq(), activeRow)) {
+//                                continue rowLoop;
+                            }
+                            setValueToObject(resultObj[0], cellSettings, obj);
+                        }
+                    }
+                });
+
+                //将前当行所对应的MAP放入List中
+                tableDataList.add(resultObj);
+            } else {
+                result.addWrongRecord(new WrongRecord(sheetSettings.getSheetSeq(), args[0], "导入的文件中空行数据", "跳过行处理", false));
+                continue;
+            }
+        }
+
+//        // 循环每一行
+//        rowLoop:
+//        for (int row = 0; row <= rowsNum; row++) {
+//            //判断是否是在skipRow之内
+//            if (row < thisSheetSettings.getSkipRows()) {
+//                continue;
+//            }
+//            // 取的当前行
+//            Row activeRow = sheet.getRow(row);
+//            // 判断当前行记录是否有有效
+//
+//        }
+        //将成功条数放入result中
+//        result.getResultTotal()[sheetIndex] = successCount;
+        //将处理后的sheet的数据放入返回对象中
+        result.addSheetList(tableDataList);
+
+        if (result.getErrors().size() > 0){
+            result.setCompleted(false);
+        }
+    }
+
+    /**
+     * 填写数据
+     * @param result
+     * @param sheet
+     * @param tableSettings
+     * @param sheetSettings
+     */
+    private void graffitiData(OfficeIoResult result, Sheet sheet,TableSettings tableSettings,SheetSettings sheetSettings){
+//        //取出当前sheet所要导出的数据
+//        List dataList = thisSheetSettings.getExportData();
+//        CellSettings[] cells = thisSheetSettings.getCellSettings();
+//
+//        //循环新增每一条数据
+//        long successCount = 0;
+//        int startRowIndex = 1;
+//        if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
+//            startRowIndex += 1;
+//        }
+//        if (hasSubTitle) {
+//            startRowIndex += 1;
+//        }
+//
+//        if (dataList != null && dataList.size() > 0) {
+//            rowLoop:
+//            for (int dataIndex = 0; dataIndex < dataList.size(); dataIndex++) {
+//                //取出当前行的数据对象
+//                Object bean = dataList.get(dataIndex);
+//                //新增行
+//                Row row = sheet.createRow(dataIndex + startRowIndex);
+//                //循环列配置为第一列赋值
+//                for (int cellIndex = 0, xlsCellIndex = 0; cellIndex < cells.length; cellIndex++) {
+//                    CellSettings thisCellSettings = cells[cellIndex];
+//
+//                    if (cells[cellIndex].getSubCells() == null) {
+//                        //构建一个CELL
+//                        Cell cell = createDataCell(workbook, row, xlsCellIndex, thisCellSettings);
+//                        //写入内容
+//                        try {
+//                            setCellDataValue(sheet, cell,thisSheetSettings, thisCellSettings, bean);
+//                        } catch (Exception e) {
+//                            recordSetCellDataValueException(result, row, thisSheetSettings, cell.getAddress().formatAsString(), thisCellSettings, e);
+//                            continue rowLoop;
+//                        }
+//                        xlsCellIndex++;
+//                    } else {
+//                        for (int subIndex = 0; subIndex < cells[cellIndex].getSubCells().length; subIndex++) {
+//                            CellSettings thisSubCellSettings = cells[cellIndex].getSubCells()[subIndex];
+//                            //构建一个CELL
+//                            Cell cell = createDataCell(workbook, row, xlsCellIndex, thisSubCellSettings);
+//                            //写入内容
+//                            try {
+//                                setCellDataValue(sheet, cell, thisSheetSettings,thisSubCellSettings, bean);
+//                            } catch (Exception e) {
+//                                recordSetCellDataValueException(result, row, thisSheetSettings, cell.getAddress().formatAsString(), thisCellSettings, e);
+//                                continue rowLoop;
+//                            }
+//                            xlsCellIndex++;
+//                        }
+//                    }
+//                }
+//                //记录成功结果
+//                successCount++;
+//            }
+//        }
+    }
+
+    private void createHeader(Sheet sheet, TableSettings tableSettings, Row startRow){
+        boolean hasSubTitle;
+        hasSubTitle = tableSettings.getCellSettingsList().stream().anyMatch(cellSettings -> cellSettings.getSubCells() != null);
+        if (hasSubTitle){
+            // 有合并表头
+            tableSettings.getCellSettingsList().stream().forEach(thisCellSettings -> {
+                Cell cell = createHeaderCell(startRow, thisCellSettings);
+
+                cell.setCellValue(thisCellSettings.getColName());
+
+                if (thisCellSettings.getSubCells() != null) {
+                    sheet.addMergedRegion(new CellRangeAddress(startRow.getRowNum(), startRow.getRowNum(), thisCellSettings.getCellSeq(), thisCellSettings.getCellSeq() + thisCellSettings.getSubCells().size() - 1));
+                }
+            });
+
+            Row subRow = sheet.createRow(startRow.getRowNum() + 1);
+            tableSettings.getCellSettingsList().parallelStream().forEach(thisCellSettings -> {
+                if (thisCellSettings.getSubCells() != null) {
+                    thisCellSettings.getSubCells().parallelStream().forEach(subCellSettings -> {
+                        Cell subTitleCell = createHeaderCell(subRow, subCellSettings);
+                        subTitleCell.setCellValue(subCellSettings.getColName());
+                    });
+                } else {
+                    CellRangeAddress region = new CellRangeAddress(startRow.getRowNum(), startRow.getRowNum() + 1, thisCellSettings.getCellSeq(), thisCellSettings.getCellSeq());
+                    sheet.addMergedRegion(region);
+                    // 处理合并单元格的边框问题
+                    RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
+                }
+            });
+        }else {
+            // 无合并表头
+            tableSettings.getCellSettingsList().parallelStream().forEach(cellSettings -> {
+                Cell subTitleCell = createHeaderCell(startRow, cellSettings);
+                subTitleCell.setCellValue(cellSettings.getColName());
+            });
+        }
+    }
+
+    /**
+     * 初始化SHEET配置
+     */
+    private List<SheetSettings> initSheetSettings (List<SheetSettings> sheetSettingsList){
+        /*
+         *  0.sheetSeq
+         *  1.tableSeq
+         */
+        final int[] args = {0,0};
+        sheetSettingsList = sheetSettingsList.stream().peek(thisSheetSettings -> {
+            // setSheetSeq
+            thisSheetSettings.setSheetSeq(args[0]++);
+            // setTableSeq
+            List<TableSettings> newTablesList = thisSheetSettings.getTableSettingsList().stream().peek(thisTableSettings -> {
+                thisTableSettings.setTableSeq(args[1]++);
+                // setCellSeq
+                final int[] cellIndex = {0};
+                List<CellSettings> newCellSettingList = thisTableSettings.getCellSettingsList().stream().peek(thisCellSettings -> {
+                    if (thisCellSettings.getSubCells() != null) {
+                        thisCellSettings.setCellSeq(cellIndex[0]);
+                        List<CellSettings> subCellSettingsList =
+                                thisCellSettings.getSubCells()
+                                        .stream()
+                                        .peek(subCellSettings -> {
+                                            thisTableSettings.getCellAddressMap().put(subCellSettings.getKey(),CellReference.convertNumToColString(cellIndex[0]));
+                                            subCellSettings.setCellSeq(cellIndex[0]++);
+                                        })
+                                        .collect(Collectors.toList());
+                        thisCellSettings.setSubCells(subCellSettingsList);
+                    } else {
+                        thisTableSettings.getCellAddressMap().put(thisCellSettings.getKey(),CellReference.convertNumToColString(cellIndex[0]));
+                        thisCellSettings.setCellSeq(cellIndex[0]++);
+                    }
+                }).collect(Collectors.toList());
+
+                thisTableSettings.setCellCount(cellIndex[0]);
+                thisTableSettings.setCellSettings(newCellSettingList);
+            }).collect(Collectors.toList());
+            thisSheetSettings.getTableSettingsList(newTablesList);
+        }).collect(Collectors.toList());
+
+        sheetSettingsList =
+                sheetSettingsList.parallelStream()
+                        .peek(thisSheetSettings ->
+                                initTableSettings(thisSheetSettings.getTableSettingsList())
+                        )
+                        .collect(Collectors.toList());
+        return sheetSettingsList;
+    }
+
+    /**
+     * 初始化TABLE配置
+     */
+    private List<TableSettings> initTableSettings (List<TableSettings> tableSettingsList) {
+        tableSettingsList = tableSettingsList.parallelStream().map(thisTableSettings -> {
+            // checkSkipRow
+            if (thisTableSettings.getSkipRows() == null) {
+                thisTableSettings.setSkipRows(1);
+            }
+            if (!StringUtils.isBlank(thisTableSettings.getTitle())){
+                thisTableSettings.setSkipRows(thisTableSettings.getSkipRows() + 1);
+            }
+            if (thisTableSettings.getCellSettingsList()
+                    .parallelStream()
+                    .anyMatch(cellSettings -> cellSettings.getSubCells() != null)){
+                thisTableSettings.setSkipRows(thisTableSettings.getSkipRows() + 1);
+            }
+
+            // 初始化Cell信息
+            return initCellSettings(thisTableSettings);
+        }).collect(Collectors.toList());
+        return tableSettingsList;
+    }
+
+    /**
+     * 初始化Cell信息
+     */
+    private TableSettings initCellSettings (TableSettings tableSettings) {
+        Map<String,Set<String>> formulaMap = new HashMap<String, Set<String>>();
+        List<CellSettings> cellArrays = getAllCell(tableSettings.getCellSettingsList());
+
+        // 处理联动下拉的Target问题
+        cellArrays.stream().forEach(thisCellSettings -> {
+            if (thisCellSettings.getCellDataType() != CellDataType.FORMULA){
+                if (thisCellSettings.getFormulaGroupNames() != null){
+                    Arrays.stream(thisCellSettings.getFormulaGroupNames())
+                            .forEach(
+                                    groupName ->
+                                            formulaMap.put(groupName, setFormulaGroupName(formulaMap.get(groupName),thisCellSettings.getKey()))
+                            );
+                }
+            }
+
+            if (thisCellSettings.getSelectCascadeFlag()){
+                tableSettings.getSelectTargetSet().add(thisCellSettings.getSelectTargetKey());
+            }
+        });
+
+        // 配置公式
+        cellArrays.parallelStream().forEach(thisCellSettings -> {
+            if (thisCellSettings.getCellDataType() == CellDataType.FORMULA){
+                thisCellSettings.getFormulaSettings().setGroupName(formulaMap.get(thisCellSettings.getFormulaGroupNames()[0]));
+            }
+        });
+
+        // 读取CLASS配置
+        if (tableSettings.getDataClazzType() != null){
+            tableSettings.setCellSettings(
+                tableSettings.getCellSettingsList().stream().peek(thisCellSettings -> {
+                    if (thisCellSettings.getSubCells() == null){
+                        if (thisCellSettings.getCellDataType() != CellDataType.FORMULA){
+                            if (thisCellSettings.getCellClass() == null){
+                                thisCellSettings.setCellClass(FieldUtils.getDeclaredFieldType(tableSettings.getDataClazzType(),thisCellSettings.getKey()));
+                                thisCellSettings.setCellDataType(FieldUtils.getCellDataType(thisCellSettings.getCellClass()));
+                            }
+                        }
+                    }else {
+                        thisCellSettings.setSubCells(
+                            thisCellSettings.getSubCells().stream().peek(subCellSettings -> {
+                                if (subCellSettings.getCellDataType() != CellDataType.FORMULA){
+                                    subCellSettings.setCellClass(FieldUtils.getDeclaredFieldType(tableSettings.getDataClazzType(),subCellSettings.getKey()));
+                                    subCellSettings.setCellDataType(FieldUtils.getCellDataType(subCellSettings.getCellClass()));
+                                }
+                            }).collect(Collectors.toList())
+                        );
+                    }
+                }).collect(Collectors.toList())
+            );
+        }
+
+        return tableSettings;
+    }
+
+    /**
+     * 获取所有CELL对象
+     * @param cellSettingsList
+     * @return
+     */
+    private List<CellSettings> getAllCell(List<CellSettings> cellSettingsList){
+        List<CellSettings> cellArrays = new ArrayList<CellSettings>();
+        cellSettingsList.parallelStream()
+                .filter(thisCellSetting -> thisCellSetting.getSubCells() == null)
+                .forEach(cellArrays::add);
+        cellSettingsList.parallelStream()
+                .filter(thisCellSetting -> thisCellSetting.getSubCells() != null)
+                .forEach(thisCellSetting -> cellArrays.addAll(thisCellSetting.getSubCells()));
+        return cellArrays;
+    }
+
+    /**
      * 将数据 放入对象
-     * @param targetObj
-     * @param cellSettings
-     * @param value
      */
     private void setValueToObject (Object targetObj,CellSettings cellSettings,Object value){
         if (targetObj instanceof Map){
@@ -718,16 +712,14 @@ public final class OfficeIoFactory {
 
     /**
      * 读取单元格数据
-     * @param cell
-     * @param cellSettings
-     * @param workbook
      * @return
-     * @throws XSSFCellTypeException
-     * @author: wujinglei
-     * @date: 2014年6月11日 下午1:22:06
-     * @Description: 按 settings 取出列中的值
      */
-    private Object getCellValue(Cell cell,SheetSettings sheetSettings, CellSettings cellSettings, Workbook workbook,Map<String,String> selectTargetValueMap) throws XSSFCellTypeException{
+    private Object getCellValue(OfficeIoResult result,
+                                Cell cell,
+                                SheetSettings sheetSettings,
+                                TableSettings tableSettings,
+                                CellSettings cellSettings,
+                                Map<String,String> selectTargetValueMap) throws XSSFCellTypeException {
         //如果有静态值，直接返回
         String cellValue;
         try{
@@ -765,8 +757,8 @@ public final class OfficeIoFactory {
         }
 
 
-        if (sheetSettings.getSelectTargetSet().size() > 0){
-            if (sheetSettings.getSelectTargetSet().contains(cellSettings.getKey())){
+        if (tableSettings.getSelectTargetSet().size() > 0){
+            if (tableSettings.getSelectTargetSet().contains(cellSettings.getKey())){
                 selectTargetValueMap.put(cellSettings.getKey(),cellValue);
             }
         }
@@ -775,19 +767,19 @@ public final class OfficeIoFactory {
         if (cellSettings.getSelect()){
             if (!cellSettings.getSelectCascadeFlag()){
                 String formulaString = cellSettings.getKey() + "_TEXT";
-                List<String> mapList = sheetSettings.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
+                List<String> mapList = (List<String>) result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
                 int matchIndex = mapList.indexOf(cellValue);
                 if (matchIndex != -1){
-                    cellValue = sheetSettings.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value").get(matchIndex);
+                    cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
                 }else{
                     // TODO warn
                 }
             }else {
                 String formulaString = cellSettings.getKey() + "_" + selectTargetValueMap.get(cellSettings.getSelectTargetKey()) + "_TEXT";
-                List<String> mapList = sheetSettings.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
+                List<String> mapList = (List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
                 int matchIndex = mapList.indexOf(cellValue);
                 if (matchIndex != -1){
-                    cellValue = sheetSettings.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value").get(matchIndex);
+                    cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
                 }else{
                     // TODO warn
                 }
@@ -857,7 +849,7 @@ public final class OfficeIoFactory {
                     }
                 case FORMULA:
                     if (CellType.FORMULA == cell.getCellTypeEnum()) {
-                        FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+                        FormulaEvaluator evaluator = cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();
                         evaluator.evaluateFormulaCellEnum(cell);
                         return evaluator.evaluate(cell).getNumberValue();
                     } else {
@@ -874,14 +866,8 @@ public final class OfficeIoFactory {
 
     /**
      * 读取对象中的数据
-     * @param cellSettings
-     * @param bean
-     * @return
-     * @author: wujinglei
-     * @date: 2014年6月11日 下午4:47:09
-     * @Description: 取出CELL所对应的值
      */
-    private String getValue(CellSettings cellSettings, Object bean) {
+    private String getValueFromObj(CellSettings cellSettings, Object bean) {
         //如果有静态值，直接返回
         if (cellSettings.getHasStaticValue()) {
             return cellSettings.getStaticValue();
@@ -907,35 +893,27 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * 创建 头
-     * @param workbook
-     * @param row
-     * @param xlsCellIndex
-     * @param cellSettings
+     * 创建表头
      * @return
      */
-    private Cell createHeaderCell(Workbook workbook, Row row, int xlsCellIndex, CellSettings cellSettings) {
+    private Cell createHeaderCell(Row row, CellSettings cellSettings){
         // 构建一个CELL
-        Cell cell = row.createCell(xlsCellIndex);
+        Cell cell = row.createCell(cellSettings.getCellSeq());
         // 设置CELL为文本格式
         cell.setCellType(CellType.STRING);
 
-        cell.setCellStyle(getCellStyle(workbook, cellSettings, true));
+        cell.setCellStyle(createCellStyle(row.getSheet().getWorkbook(), cellSettings, true));
 
         return cell;
     }
 
     /**
      * 创建单元格
-     * @param workbook
-     * @param row
-     * @param xlsCellIndex
-     * @param cellSettings
      * @return
      */
-    private Cell createDataCell(Workbook workbook, Row row, int xlsCellIndex, CellSettings cellSettings) {
+    private Cell createDataCell(Row row,CellSettings cellSettings){
         // 构建一个CELL
-        Cell cell = row.createCell(xlsCellIndex);
+        Cell cell = row.createCell(cellSettings.getCellSeq());
         // 设置CELL格式
         if (cellSettings.getCellDataType() != null) {
             switch (cellSettings.getCellDataType()) {
@@ -947,18 +925,14 @@ public final class OfficeIoFactory {
                     break;
             }
         }
-        cell.setCellStyle(getCellStyle(workbook, cellSettings, false));
+        cell.setCellStyle(createCellStyle(row.getSheet().getWorkbook(), cellSettings, false));
         return cell;
     }
 
     /**
-     * @param sheet
-     * @param cell
-     * @param cellSettings
-     * @param dataBean
-     * @return
+     * 将数据放入单元格
      */
-    private void setCellDataValue(Sheet sheet, Cell cell, SheetSettings sheetSettings,CellSettings cellSettings, Object dataBean) {
+    private void setCellDataValue(Sheet sheet,Cell cell,SheetSettings sheetSettings,TableSettings tableSettings,CellSettings cellSettings, Object dataBean){
         //写入内容
         if (cellSettings.getHasStaticValue()) {
             cell.setCellValue(cellSettings.getStaticValue());
@@ -966,7 +940,7 @@ public final class OfficeIoFactory {
         if (cellSettings.getSelect()) {
             StringBuilder formulaString = new StringBuilder();
             if (cellSettings.getSelectCascadeFlag()){
-                String addressFlag = sheetSettings.getCellAddressMap().get(cellSettings.getSelectTargetKey());
+                String addressFlag = tableSettings.getCellAddressMap().get(cellSettings.getSelectTargetKey());
                 // =INDIRECT(VLOOKUP(A1,Sheet2!A:B,2,0))
                 formulaString.append("INDIRECT(VLOOKUP(");
                 formulaString.append("CONCATENATE(\"");
@@ -974,19 +948,17 @@ public final class OfficeIoFactory {
                 formulaString.append("_\",");
                 formulaString.append(addressFlag);
                 formulaString.append(cell.getAddress().getRow() + 1);
-                formulaString.append("),select_");
-                formulaString.append(sheetSettings.getSheetSeq());
-                formulaString.append("_text");
+                formulaString.append("),select_text");
                 formulaString.append("!A:B,2,0))");
             }else {
-                formulaString.append(DigestUtils.digestFormulaName(cellSettings.getKey() + "_TEXT"));
+                formulaString.append(DigestUtils.digestFormulaName(sheetSettings.getSheetSeq() + "_" + tableSettings.getTableSeq() + "_" + cellSettings.getKey() + "_TEXT"));
             }
             setSelectDataValidation(sheet,formulaString.toString(),cell.getRowIndex(),cell.getColumnIndex());
         }
 
         if (dataBean != null) {
             if (cellSettings.getCellDataType() != CellDataType.FORMULA){
-                String reVal = getValue(cellSettings, dataBean);
+                String reVal = getValueFromObj(cellSettings, dataBean);
                 if (!cellSettings.getFixedValue()){
                     if (!StringUtils.isBlank(reVal)) {
                         switch (cellSettings.getCellDataType()){
@@ -1019,7 +991,7 @@ public final class OfficeIoFactory {
             }else {
                 FormulaSettings formulaSettings = cellSettings.getFormulaSettings();
                 if (formulaSettings != null){
-                    String formulaStr = createFormulaByGroup(sheetSettings,cell,formulaSettings.getFormulaType(),formulaSettings.getGroupName());
+                    String formulaStr = createFormulaByGroup(tableSettings,cell,formulaSettings.getFormulaType(),formulaSettings.getGroupName());
                     cell.setCellFormula(formulaStr);
                 }
 
@@ -1028,12 +1000,10 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * @param workbook
-     * @param cellSettings
-     * @param isTitle
+     * 生成样式
      * @return
      */
-    private CellStyle getCellStyle(Workbook workbook, CellSettings cellSettings, boolean isTitle) {
+    private CellStyle createCellStyle(Workbook workbook, CellSettings cellSettings, boolean isTitle){
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
         try {
@@ -1072,12 +1042,7 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * 统一处理异常
-     *
-     * @param result
-     * @param row
-     * @param thisCellSettings
-     * @param e
+     * 记录异常信息
      */
     private void recordSetCellDataValueException(OfficeIoResult result, Row row, SheetSettings sheetSettings, String address, CellSettings thisCellSettings, Exception e) {
         try {
@@ -1103,53 +1068,45 @@ public final class OfficeIoFactory {
     /**
      * 处理下拉列表问题
      * @param workbook
-     * @param sheetSettings
-     * @param index
+     * @param sheetSettingsList
      */
-    private void createHideSelectSheet(Workbook workbook, SheetSettings sheetSettings, int index) {
-        Sheet selectTextSheet = workbook.createSheet("select" + "_" + index + "_text");
-        Sheet selectValueSheet = workbook.createSheet("select" + "_" + index + "_value");
+    private void createHideSelectSheet(Workbook workbook, List<SheetSettings> sheetSettingsList) {
+        Sheet selectTextSheet = workbook.createSheet("select_text");
+        Sheet selectValueSheet = workbook.createSheet("select_value");
 
-        CellSettings[] cellSettings = sheetSettings.getCellSettings();
-        int selectRowIndex = 0;
-
+        /*
+         * 1. selectRowIndex
+         */
+        int[] args = {0};
         // 先处理没有联动的下拉
         Map<String,String[]> textMapping = new HashMap<String, String[]>();
         Map<String,String[]> valueMapping = new HashMap<String, String[]>();
-        for (CellSettings thisCell : cellSettings) {
-            if (thisCell.getSubCells() != null) {
-                for (CellSettings subCell : thisCell.getSubCells()) {
-                    if (subCell.getSelect() && !subCell.getSelectCascadeFlag()) {
-                        setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, subCell.getSelectTextList(), subCell.getSelectValueList(),false);
-                        createSelectNameList(selectTextSheet.getSheetName(), workbook, DigestUtils.digestFormulaName(subCell.getKey() + "_TEXT"), selectRowIndex, subCell.getSelectTextList().length, subCell.getSelectCascadeFlag());
-                        selectRowIndex++;
-                        textMapping.put(subCell.getKey(),subCell.getSelectTextList());
-                        valueMapping.put(subCell.getKey(),subCell.getSelectValueList());
-                    }
-                }
-            } else {
-                if (thisCell.getSelect() && !thisCell.getSelectCascadeFlag()) {
-                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, thisCell.getSelectTextList(), thisCell.getSelectValueList(),false);
-                    createSelectNameList(selectTextSheet.getSheetName(), workbook, DigestUtils.digestFormulaName(thisCell.getKey() + "_TEXT"), selectRowIndex, thisCell.getSelectTextList().length, thisCell.getSelectCascadeFlag());
-                    selectRowIndex++;
-                    textMapping.put(thisCell.getKey(),thisCell.getSelectTextList());
-                    valueMapping.put(thisCell.getKey(),thisCell.getSelectValueList());
-                }
-            }
-        }
 
-        // 处理有联动的下拉
-        for (CellSettings thisCell : cellSettings) {
-            if (thisCell.getSubCells() != null) {
-                for (CellSettings subCell : thisCell.getSubCells()) {
-                    if (subCell.getSelect() && subCell.getSelectCascadeFlag()) {
-                        if (subCell.getSelectSourceList() != null && subCell.getSelectSourceList().size() > 0){
-                            String[] targetTextArray = textMapping.get(subCell.getSelectTargetKey());
-                            String[] targetValueArray = valueMapping.get(subCell.getSelectTargetKey());
+        sheetSettingsList.stream().forEach(sheetSettings -> sheetSettings.getTableSettingsList().stream().forEach(tableSettings -> {
+            List<CellSettings> cellArrays = getAllCell(tableSettings.getCellSettingsList());
+            // 先处理没有联动的下拉
+            cellArrays.stream()
+                    .filter(cellSettings -> cellSettings.getSelect() && !cellSettings.getSelectCascadeFlag())
+                    .forEach(cellSettings -> {
+                        int thisSelectRowIndex = args[0]++;
+                        setSelectRow(selectTextSheet, selectValueSheet, thisSelectRowIndex, cellSettings.getSelectValueList(), cellSettings.getSelectTextList(),false);
+                        createSelectNameList(selectTextSheet.getSheetName(), workbook, DigestUtils.digestFormulaName(sheetSettings.getSheetSeq() + "_" + tableSettings.getTableSeq() + "_" + cellSettings.getKey() + "_TEXT"), thisSelectRowIndex, cellSettings.getSelectTextList().length, cellSettings.getSelectCascadeFlag());
+                        textMapping.put(cellSettings.getKey(),cellSettings.getSelectTextList());
+                        valueMapping.put(cellSettings.getKey(),cellSettings.getSelectValueList());
+                    });
+
+            // 处理有联动的下拉
+            cellArrays.stream()
+                    .filter(cellSettings -> cellSettings.getSelect() && cellSettings.getSelectCascadeFlag())
+                    .forEach(cellSettings -> {
+                        if (cellSettings.getSelectSourceList() != null && cellSettings.getSelectSourceList().size() > 0){
+                            String[] targetTextArray = textMapping.get(cellSettings.getSelectTargetKey());
+                            String[] targetValueArray = valueMapping.get(cellSettings.getSelectTargetKey());
                             if (targetTextArray != null && targetTextArray.length > 0){
                                 if (targetValueArray != null && targetValueArray.length > 0) {
                                     Map<String, List<String>> addTextSelectMap = new HashMap<String, List<String>>();
                                     Map<String, List<String>> addValueSelectMap = new HashMap<String, List<String>>();
+
                                     for (String textKey : targetTextArray) {
                                         List<String> textList = new ArrayList<String>();
                                         textList.add(textKey);
@@ -1160,90 +1117,39 @@ public final class OfficeIoFactory {
                                         valueList.add(valueKey);
                                         addValueSelectMap.put(valueKey, valueList);
                                     }
-                                    for (Object obj : subCell.getSelectSourceList()) {
-                                        int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, subCell.getBingKey())));
-                                        if (matchIndex >= 0) {
-                                            addTextSelectMap.get(targetTextArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, subCell.getCellSelectSettings().getKey())));
-                                            addValueSelectMap.get(targetValueArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, subCell.getCellSelectSettings().getName())));
-                                        }
-                                    }
 
-                                    for (Object obj : subCell.getSelectSourceList()) {
-                                        int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, subCell.getBingKey())));
+                                    cellSettings.getSelectSourceList().stream().forEach(obj -> {
+                                        int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, cellSettings.getBingKey())));
                                         if (matchIndex >= 0) {
-                                            String formulaStr = DigestUtils.digestFormulaName(subCell.getKey() + "_" + selectRowIndex + "_TEXT");
+                                            addTextSelectMap.get(targetTextArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, cellSettings.getCellSelectSettings().getKey())));
+                                            addValueSelectMap.get(targetValueArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, cellSettings.getCellSelectSettings().getName())));
+                                        }
+                                    });
+
+                                    cellSettings.getSelectSourceList().stream().forEach(obj -> {
+                                        int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, cellSettings.getBingKey())));
+                                        if (matchIndex >= 0) {
+                                            String formulaStr = DigestUtils.digestFormulaName(cellSettings.getKey() + "_" + System.nanoTime() + "_" + "_TEXT");
                                             String[] addTextArray = new String[addTextSelectMap.get(targetTextArray[matchIndex]).size()];
                                             addTextSelectMap.get(targetTextArray[matchIndex]).toArray(addTextArray);
                                             String[] addValueArray = new String[addValueSelectMap.get(targetValueArray[matchIndex]).size()];
                                             addValueSelectMap.get(targetValueArray[matchIndex]).toArray(addValueArray);
-                                            addTextArray[0] = subCell.getKey() + "_" + addTextArray[0];
+                                            addTextArray[0] = cellSettings.getKey() + "_" + addTextArray[0];
                                             addTextArray = ArrayUtils.insert(1,addTextArray,formulaStr);
-                                            addValueArray[0] = subCell.getKey() + "_" + addValueArray[0];
+                                            addValueArray[0] = cellSettings.getKey() + "_" + addValueArray[0];
                                             addValueArray = ArrayUtils.insert(1,addValueArray,formulaStr);
-                                            setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray,true);
-                                            createSelectNameList(selectTextSheet.getSheetName(), workbook, formulaStr, selectRowIndex, addTextSelectMap.get(targetTextArray[matchIndex]).size(), subCell.getSelectCascadeFlag());
-                                            selectRowIndex++;
+                                            setSelectRow(selectTextSheet, selectValueSheet, args[0], addTextArray, addValueArray,true);
+                                            createSelectNameList(selectTextSheet.getSheetName(), workbook, formulaStr, args[0]++, addTextSelectMap.get(targetTextArray[matchIndex]).size(), cellSettings.getSelectCascadeFlag());
                                         }
-                                    }
+                                    });
                                 }
                             }
                         }
-                    }
-                }
-            } else {
-                if (thisCell.getSelect() && thisCell.getSelectCascadeFlag()) {
-                    if (thisCell.getSelectSourceList() != null && thisCell.getSelectSourceList().size() > 0){
-                        String[] targetTextArray = textMapping.get(thisCell.getSelectTargetKey());
-                        String[] targetValueArray = valueMapping.get(thisCell.getSelectTargetKey());
-                        if (targetTextArray != null && targetTextArray.length > 0){
-                            if (targetValueArray != null && targetValueArray.length > 0) {
-                                LinkedHashMap<String, List<String>> addTextSelectMap = new LinkedHashMap<String, List<String>>();
-                                LinkedHashMap<String, List<String>> addValueSelectMap = new LinkedHashMap<String, List<String>>();
-                                Map<String, String> mappingMap = new HashMap();
-                                for (int arraryIndex = 0; arraryIndex < targetTextArray.length; arraryIndex++) {
-                                    mappingMap.put(targetTextArray[arraryIndex], targetValueArray[arraryIndex]);
-                                }
-                                for (String textKey : targetTextArray) {
-                                    List<String> textList = new ArrayList<String>();
-                                    textList.add(textKey);
-                                    addTextSelectMap.put(textKey, textList);
-                                }
-                                for (String valueKey : targetValueArray) {
-                                    List<String> valueList = new ArrayList<String>();
-                                    valueList.add(valueKey);
-                                    addValueSelectMap.put(valueKey, valueList);
-                                }
-                                for (Object obj : thisCell.getSelectSourceList()) {
-                                    int matchIndex = ArrayUtils.indexOf(targetValueArray, String.valueOf(BeanUtils.invokeGetter(obj, thisCell.getBingKey())));
-                                    if (matchIndex >= 0) {
-                                        addTextSelectMap.get(targetTextArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, thisCell.getCellSelectSettings().getName())));
-                                        addValueSelectMap.get(targetValueArray[matchIndex]).add(String.valueOf(BeanUtils.invokeGetter(obj, thisCell.getCellSelectSettings().getKey())));
-                                    }
-                                }
+                    });
+        }));
 
-                                for (String key : mappingMap.keySet()) {
-                                    String formulaStr = DigestUtils.digestFormulaName(thisCell.getKey() + "_" + key + "_TEXT");
-                                    String[] addTextArray = new String[addTextSelectMap.get(key).size()];
-                                    addTextSelectMap.get(key).toArray(addTextArray);
-                                    String[] addValueArray = new String[addValueSelectMap.get(mappingMap.get(key)).size()];
-                                    addValueSelectMap.get(mappingMap.get(key)).toArray(addValueArray);
-                                    addTextArray[0] = thisCell.getKey() + "_" + addTextArray[0];
-                                    addTextArray = ArrayUtils.insert(1,addTextArray,formulaStr);
-                                    addValueArray[0] = thisCell.getKey() + "_" + addValueArray[0];
-                                    addValueArray = ArrayUtils.insert(1,addValueArray,formulaStr);
-                                    setSelectRow(selectTextSheet, selectValueSheet, selectRowIndex, addTextArray, addValueArray,true);
-                                    createSelectNameList(selectTextSheet.getSheetName(), workbook, formulaStr, selectRowIndex, addTextSelectMap.get(key).size(), thisCell.getSelectCascadeFlag());
-                                    selectRowIndex++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_text"), true);
-        workbook.setSheetHidden(workbook.getSheetIndex("select" + "_" + index + "_value"), true);
+        workbook.setSheetHidden(workbook.getSheetIndex("select_text"), false);
+        workbook.setSheetHidden(workbook.getSheetIndex("select_value"), false);
     }
 
     /**
@@ -1269,12 +1175,13 @@ public final class OfficeIoFactory {
      * @param selectTextSheet
      * @param selectValueSheet
      * @param selectRowIndex
-     * @param textList
-     * @param valueList
+     * @param selectTextList
+     * @param selectValueList
+     * @param cascadeFlag
      */
-    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, String[] textList, String[] valueList, boolean cascadeFlag) {
-        createSelectRow(selectTextSheet.createRow(selectRowIndex), textList, cascadeFlag);
-        createSelectRow(selectValueSheet.createRow(selectRowIndex), valueList, cascadeFlag);
+    private void setSelectRow(Sheet selectTextSheet, Sheet selectValueSheet, int selectRowIndex, String[] selectValueList, String[] selectTextList, boolean cascadeFlag) {
+        createSelectRow(selectTextSheet.createRow(selectRowIndex), selectTextList, cascadeFlag);
+        createSelectRow(selectValueSheet.createRow(selectRowIndex), selectValueList, cascadeFlag);
     }
 
     /**
@@ -1369,7 +1276,7 @@ public final class OfficeIoFactory {
      * @param xlsCellIndex
      */
     private void setSelectDataValidation(Sheet sheet,String formulaString,int rowIndex,int xlsCellIndex) {
-        XSSFDataValidationConstraint  dvConstraint = new XSSFDataValidationConstraint(DataValidationConstraint.ValidationType.LIST,formulaString);
+        XSSFDataValidationConstraint dvConstraint = new XSSFDataValidationConstraint(DataValidationConstraint.ValidationType.LIST,formulaString);
         CellRangeAddressList addressList = new CellRangeAddressList(rowIndex, rowIndex, xlsCellIndex, xlsCellIndex);
         DataValidation dataValidation = sheet.getDataValidationHelper().createValidation(dvConstraint, addressList);
         dataValidation.setShowErrorBox(true);
@@ -1377,178 +1284,48 @@ public final class OfficeIoFactory {
     }
 
     /**
-     * 检查Cell信息
-     * @param workbook
-     * @param sheetSettings
-     * @param sheetIndex
-     * @return
-     * @throws SheetIndexException
-     */
-    private SheetSettings checkCellSettings(Workbook workbook, SheetSettings sheetSettings,int sheetIndex) throws SheetIndexException {
-
-        try {
-            int sheetNumbers = workbook.getNumberOfSheets();
-
-            // reSet sheetSeq
-            if (sheetSettings.getSheetSeq() == null) {
-                sheetSettings.setSheetSeq(sheetIndex);
-            }
-            CellSettings[] cells = sheetSettings.getCellSettings();
-
-            // checkSkipRow
-            if (sheetSettings.getSkipRows() == null) {
-                sheetSettings.setSkipRows(1);
-                for (CellSettings cellSettings : cells) {
-                    if (cellSettings.getSubCells() != null) {
-                        sheetSettings.setSkipRows(2);
-                        break;
-                    }
-                }
-            }
-
-            if (!StringUtils.isBlank(sheetSettings.getTitle())){
-                sheetSettings.setSkipRows(sheetSettings.getSkipRows() + 1);
-            }
-
-            // 处理联动下拉的Target问题
-            int cellCount = 0;
-            Map<String,Set<String>> formulaMap = new HashMap<String, Set<String>>();
-            for (CellSettings cellSettings : cells) {
-                if (cellSettings.getSubCells() != null) {
-                    for(CellSettings subCellSettings: cellSettings.getSubCells()){
-                        sheetSettings.getCellAddressMap().put(subCellSettings.getKey(),CellReference.convertNumToColString(cellCount));
-                        if (subCellSettings.getCellDataType() != CellDataType.FORMULA){
-                            if (subCellSettings.getFormulaGroupNames() != null){
-                                for(String groupName: subCellSettings.getFormulaGroupNames()){
-                                    formulaMap.put(groupName,setformulaGroupName(formulaMap.get(groupName),subCellSettings.getKey()));
-                                }
-                            }
-                        }
-
-                        if (subCellSettings.getSelectCascadeFlag()){
-                            sheetSettings.getSelectTargetSet().add(subCellSettings.getSelectTargetKey());
-                        }
-                        cellCount++;
-                    }
-                } else {
-                    sheetSettings.getCellAddressMap().put(cellSettings.getKey(), CellReference.convertNumToColString(cellCount));
-                    if (cellSettings.getCellDataType() != CellDataType.FORMULA){
-                        if (cellSettings.getFormulaGroupNames() != null){
-                            for(String groupName: cellSettings.getFormulaGroupNames()){
-                                formulaMap.put(groupName,setformulaGroupName(formulaMap.get(groupName),cellSettings.getKey()));
-                            }
-                        }
-                    }
-
-                    if (cellSettings.getSelectCascadeFlag()){
-                        sheetSettings.getSelectTargetSet().add(cellSettings.getSelectTargetKey());
-                    }
-                    cellCount++;
-                }
-            }
-            sheetSettings.setCellCount(cellCount);
-
-            for (CellSettings cellSettings : cells) {
-                if (cellSettings.getSubCells() != null) {
-                    for (CellSettings subCellSettings : cellSettings.getSubCells()) {
-                        if (subCellSettings.getCellDataType() == CellDataType.FORMULA){
-                            subCellSettings.getFormulaSettings().setGroupName(formulaMap.get(subCellSettings.getFormulaGroupNames()[0]));
-                        }
-                    }
-                }else {
-                    if (cellSettings.getCellDataType() == CellDataType.FORMULA){
-                        cellSettings.getFormulaSettings().setGroupName(formulaMap.get(cellSettings.getFormulaGroupNames()[0]));
-                    }
-                }
-            }
-
-            if (sheetSettings.getSheetSeq() > sheetNumbers) {
-                throw new SheetIndexException("无法在文件中找到指定的sheet序号");
-            }
-
-            // check entityDataType
-            if (sheetSettings.getDataClazzType() != null){
-                for (CellSettings cellSettings: cells){
-                    if (cellSettings.getSubCells() == null){
-                        if (cellSettings.getCellDataType() != CellDataType.FORMULA){
-                            if (cellSettings.getCellClass() == null){
-                                cellSettings.setCellClass(FieldUtils.getDeclaredFieldType(sheetSettings.getDataClazzType(),cellSettings.getKey()));
-                                cellSettings.setCellDataType(FieldUtils.getCellDataType(cellSettings.getCellClass()));
-                            }
-                        }else {
-                            continue;
-                        }
-                    }else {
-                        for (CellSettings subCell: cellSettings.getSubCells()){
-                            if (subCell.getCellDataType() != CellDataType.FORMULA){
-                                subCell.setCellClass(FieldUtils.getDeclaredFieldType(sheetSettings.getDataClazzType(),subCell.getKey()));
-                                subCell.setCellDataType(FieldUtils.getCellDataType(subCell.getCellClass()));
-                            }else {
-                                continue;
-                            }
-                        }
-                    }
-                }
-            }
-
-            sheetSettings.setCellSettings(cells);
-        } catch (Exception e){
-            log.error(e.getMessage(), e);
-            throw new SheetIndexException(e.getMessage());
-        }
-        return sheetSettings;
-    }
-
-    /**
      * 获取下拉信息
-     * @param workbook
-     * @param sheetSettings
-     * @param thisSheetIndex
+     * @param officeIoResult
      */
-    private void getSelectSheetMap(Workbook workbook,SheetSettings sheetSettings,int thisSheetIndex){
-        List<Name> list = (List<Name>) workbook.getAllNames();
-        for (Name name: list){
-            if (name.getRefersToFormula().indexOf("_" + thisSheetIndex + "_") != 0){
-                sheetSettings.getSelectMap().put(name.getNameName(),new ArrayList<String>());
-                sheetSettings.getSelectMap().put(name.getNameName() + "_value",new ArrayList<String>());
+    private void getSelectSheetMap(OfficeIoResult officeIoResult){
+        List<XSSFName> list = officeIoResult.getResultWorkbook().getAllNames();
+        list.parallelStream().forEach(name -> {
+            officeIoResult.getSelectMap().put(name.getNameName(),new ArrayList<String>());
+            officeIoResult.getSelectMap().put(name.getNameName() + "_value",new ArrayList<String>());
 
-                Sheet textSheet = workbook.getSheet(name.getRefersToFormula().split("!")[0]);
-                Sheet valueSheet = workbook.getSheet(name.getRefersToFormula().split("!")[0].replace("_text","_value"));
+            Sheet textSheet = officeIoResult.getResultWorkbook().getSheet(name.getRefersToFormula().split("!")[0]);
+            Sheet valueSheet = officeIoResult.getResultWorkbook().getSheet(name.getRefersToFormula().split("!")[0].replace("_text","_value"));
 
-                String address = name.getRefersToFormula().split("!")[1];
+            String address = name.getRefersToFormula().split("!")[1];
 
-                int rowNum = Integer.valueOf(address.split(":")[0].substring(address.split(":")[0].lastIndexOf("$") + 1));
-                String[] cellAddress = address.replaceAll("['$]","").replaceAll(String.valueOf(rowNum),"").split(":");
+            int rowNum = Integer.valueOf(address.split(":")[0].substring(address.split(":")[0].lastIndexOf("$") + 1));
+            String[] cellAddress = address.replaceAll("['$]","").replaceAll(String.valueOf(rowNum),"").split(":");
 
-                Row textRow = textSheet.getRow(rowNum - 1);
-                Row valueRow = valueSheet.getRow(rowNum - 1);
+            Row textRow = textSheet.getRow(rowNum - 1);
+            Row valueRow = valueSheet.getRow(rowNum - 1);
 
-                if (cellAddress.length > 1){
-                    for (int cellIndex = CellReference.convertColStringToIndex(cellAddress[0]); cellIndex <= CellReference.convertColStringToIndex(cellAddress[1]); cellIndex++) {
-                        Cell textCell = textRow.getCell(cellIndex);
-                        Cell valueCell = valueRow.getCell(cellIndex);
-                        if (textCell != null){
-                            sheetSettings.getSelectMap().get(name.getNameName()).add(textCell.getStringCellValue());
-                            sheetSettings.getSelectMap().get(name.getNameName() + "_value").add(valueCell.getStringCellValue());
-                        }
-                    }
-                }
+            if (cellAddress.length > 1){
+                IntStream
+                        .rangeClosed(CellReference.convertColStringToIndex(cellAddress[0]),CellReference.convertColStringToIndex(cellAddress[1]))
+                        .forEach(cellIndex -> {
+                            Cell textCell = textRow.getCell(cellIndex);
+                            Cell valueCell = valueRow.getCell(cellIndex);
+                            if (textCell != null){
+                                ((List)officeIoResult.getSelectMap().get(name.getNameName())).add(textCell.getStringCellValue());
+                                ((List)officeIoResult.getSelectMap().get(name.getNameName() + "_value")).add(valueCell.getStringCellValue());
+                            }
+                        });
             }
-        }
+        });
     }
 
     /**
-     * 清理缓存
-     * @param sheetSettings
+     * 设置公式组名称
+     * @param group
+     * @param addName
+     * @return
      */
-    private void cleanCacheData(SheetSettings[] sheetSettings){
-        for (SheetSettings thisSheetSettings: sheetSettings){
-            thisSheetSettings.getSelectTargetSet().clear();
-            thisSheetSettings.getSelectMap().clear();
-        }
-    }
-
-    private Set<String> setformulaGroupName(Set<String> group,String addName){
+    private Set<String> setFormulaGroupName(Set<String> group, String addName){
         if (group == null){
             group = new HashSet<String>();
         }
@@ -1556,7 +1333,7 @@ public final class OfficeIoFactory {
         return group;
     }
 
-    private String createFormulaByGroup(SheetSettings sheetSettings,Cell cell,FormulaType formulaType,Set<String> group){
+    private String createFormulaByGroup(TableSettings tableSettings, Cell cell, FormulaType formulaType, Set<String> group){
         StringBuffer formulaStr = new StringBuffer();
         formulaStr.append(formulaType.getValue());
         formulaStr.append("(");
@@ -1565,9 +1342,92 @@ public final class OfficeIoFactory {
             if (i++ > 0) {
                 formulaStr.append(",");
             }
-            formulaStr.append(sheetSettings.getCellAddressMap().get(name) + (cell.getRowIndex() + 1));
+            formulaStr.append(tableSettings.getCellAddressMap().get(name) + (cell.getRowIndex() + 1));
         }
         formulaStr.append(")");
         return formulaStr.toString();
+    }
+
+    /**
+     * check cell Rules
+     * @param obj
+     * @param result
+     * @param sheetIndex
+     * @param activeRow
+     * @return
+     * @author: wujinglei
+     * @date: 2014年7月8日 下午4:46:02
+     * @Description: 判断规则
+     */
+    private Boolean checkRule(CellSettings cellSettings, Cell cell, Object obj, OfficeIoResult result, int sheetIndex, Row activeRow) {
+        if (cellSettings.getCellRule() != null) {
+            switch (cellSettings.getCellRule()) {
+                case REQUIRED:
+                    if (obj == null || StringUtils.isBlank(String.valueOf(obj))) {
+                        result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列不能为空", "跳过行处理", false));
+                        result.addErrorRecordRow(sheetIndex, activeRow);
+                        return false;
+                    }
+                    break;
+                case EQUALSTO:
+                    if (!cellSettings.getCellRuleValue().equals(obj)) {
+                        result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值"
+                                + cellSettings.getCellRuleValue() + "与读取出的值" + obj + "不相等", "跳过行处理", false));
+                        result.addErrorRecordRow(sheetIndex, activeRow);
+                        return false;
+                    }
+                case LONG:
+                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
+                        try {
+                            Long.parseLong(String.valueOf(obj));
+                        } catch (NumberFormatException ex) {
+                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是长整型", "跳过行处理", false));
+                            result.addErrorRecordRow(sheetIndex, activeRow);
+                            return false;
+                        }
+                    }
+                case INTEGER:
+                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
+                        try {
+                            Integer.parseInt(String.valueOf(obj));
+                        } catch (NumberFormatException ex) {
+                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是整型", "跳过行处理", false));
+                            result.addErrorRecordRow(sheetIndex, activeRow);
+                            return false;
+                        }
+                    }
+                case DOUBLE:
+                    if (StringUtils.isNotBlank(String.valueOf(obj))) {
+                        try {
+                            Double.parseDouble(String.valueOf(obj));
+                        } catch (NumberFormatException ex) {
+                            result.addErrorRecord(new ErrorRecord(cell.getSheet().getSheetName(), cell.getAddress().formatAsString(), cellSettings, "当前列预设值不是浮点型", "跳过行处理", false));
+                            result.addErrorRecordRow(sheetIndex, activeRow);
+                            return false;
+                        }
+                    }
+                default:
+                    break;
+            }
+        }
+        return true;
+    }
+
+    private boolean tableIsClosed(Sheet sheet,Integer rowNum){
+        Row row = sheet.getRow(rowNum);
+        if (row != null) {
+            if (row.getRowNum() == row.getSheet().getLastRowNum()){
+                return true;
+            }else {
+                Cell cell = row.getCell(0);
+                if (cell != null && cell.getStringCellValue().contains("[-----]")){
+                    return true;
+                }else {
+                    return false;
+                }
+            }
+        }else {
+            return true;
+        }
     }
 }

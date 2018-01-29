@@ -2,6 +2,8 @@ package com.jin.commons.poi.model;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +75,7 @@ public final class CellSettings {
 	/**
 	 * 子CELL
 	 */
-	private CellSettings[] subCells;
+	private List<CellSettings> subCells;
 
 	/**
 	 * Cell对象类型，默认为自动
@@ -206,7 +208,7 @@ public final class CellSettings {
 	 *
 	 * @return the subCells
 	 */
-	public CellSettings[] getSubCells() {
+	public List<CellSettings> getSubCells() {
 		return subCells;
 	}
 
@@ -374,7 +376,7 @@ public final class CellSettings {
 	 * @Description: 添加子项
 	 */
 	public CellSettings addSubCells(CellSettings[] subCells) {
-		this.subCells = subCells;
+		this.subCells = new ArrayList<CellSettings>(Arrays.asList(subCells));
 		return this;
 	}
 
@@ -621,5 +623,14 @@ public final class CellSettings {
 	 */
 	public void setCellSeq(Integer cellSeq) {
 		this.cellSeq = cellSeq;
+	}
+
+	/**
+	 * Sets sub cells.
+	 *
+	 * @param subCells the sub cells
+	 */
+	public void setSubCells(List<CellSettings> subCells) {
+		this.subCells = subCells;
 	}
 }

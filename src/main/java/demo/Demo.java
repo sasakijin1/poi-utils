@@ -21,19 +21,19 @@ import java.util.Map;
 public class Demo {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        exportXlsTemplate();
+//        exportXlsTemplate();
         OfficeIoResult officeIoResult = importXls();
-
-        List list = officeIoResult.getImportList();
-        if (list != null && list.size() > 0){
-            exportXls(list);
-        }
-        if (!officeIoResult.isCompleted()){
-            OfficeIoResult result = OfficeIoUtils.exportErrorRecord(officeIoResult.getSheetSettings(),officeIoResult.getErrRecordRows());
-            FileOutputStream out = new FileOutputStream("d:\\successError.xlsx");
-            result.getResultWorkbook().write(out);
-            out.close();
-        }
+//
+//        List list = officeIoResult.getImportList();
+//        if (list != null && list.size() > 0){
+//            exportXls(list);
+//        }
+//        if (!officeIoResult.isCompleted()){
+//            OfficeIoResult result = OfficeIoUtils.exportErrorRecord(officeIoResult.getSheetSettings(),officeIoResult.getErrRecordRows());
+//            FileOutputStream out = new FileOutputStream("d:\\successError.xlsx");
+//            result.getResultWorkbook().write(out);
+//            out.close();
+//        }
 
     }
 

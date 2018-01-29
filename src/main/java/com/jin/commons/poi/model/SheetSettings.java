@@ -43,13 +43,6 @@ public final class SheetSettings {
 
     private List<TableSettings> tableSettingsList;
 
-    private Map<String, List<String>> selectMap = new HashMap();
-
-    /**
-     * The Select target set.
-     */
-    public Set<String> selectTargetSet = new HashSet<String>();
-
     /**
      * @author: wujinglei
      * @date: 2014年6月11日 上午10:40:27
@@ -224,6 +217,14 @@ public final class SheetSettings {
         this.tableSettingsList.get(0).setCellSettings(list);
     }
 
+    public void setCellSettings(CellSettings[] arrays) {
+        if (this.tableSettingsList == null){
+            this.tableSettingsList = new ArrayList();
+            this.tableSettingsList.add(new TableSettings());
+        }
+        this.tableSettingsList.get(0).setCellSettings(new ArrayList<CellSettings>(Arrays.asList(arrays)));
+    }
+
     /**
      * Gets skip rows.
      *
@@ -256,24 +257,6 @@ public final class SheetSettings {
         this.tableSettingsList.get(0).setExportData(exportData);
     }
 
-    /**
-     * Gets select map.
-     *
-     * @return the select map
-     */
-    public Map<String, List<String>> getSelectMap() {
-        return selectMap;
-    }
-
-    /**
-     * Gets select target set.
-     *
-     * @return the select target set
-     */
-    public Set<String> getSelectTargetSet() {
-        return selectTargetSet;
-    }
-
     @Override
     public String toString() {
         return "SheetSettings{" +
@@ -283,8 +266,6 @@ public final class SheetSettings {
                 ", title='" + title + '\'' +
                 ", titleStyle=" + titleStyle +
                 ", tableSettingsList=" + tableSettingsList +
-                ", selectMap=" + selectMap +
-                ", selectTargetSet=" + selectTargetSet +
                 '}';
     }
 
@@ -313,5 +294,9 @@ public final class SheetSettings {
      */
     public List<TableSettings> getTableSettingsList() {
         return tableSettingsList;
+    }
+
+    public void getTableSettingsList(List<TableSettings> tableSettingsList) {
+        this.tableSettingsList = tableSettingsList;
     }
 }

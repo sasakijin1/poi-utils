@@ -12,6 +12,8 @@ public final class TableSettings {
      */
     private Integer skipRows;
 
+    private Integer startRowNum;
+
     /**
      * 表序号
      */
@@ -45,6 +47,11 @@ public final class TableSettings {
     private CellStyleSettings titleStyle;
 
     private Map<String,String> cellAddressMap = new HashMap();
+
+    /**
+     * The Select target set.
+     */
+    public Set<String> selectTargetSet = new HashSet<String>();
 
     /**
      * Instantiates a new Table settings.
@@ -197,5 +204,80 @@ public final class TableSettings {
      */
     public void setTableSeq(Integer tableSeq) {
         this.tableSeq = tableSeq;
+    }
+
+    /**
+     * Sets skip rows.
+     *
+     * @param skipRows the skip rows
+     */
+    public void setSkipRows(Integer skipRows) {
+        this.skipRows = skipRows;
+    }
+
+    /**
+     * Sets cell settings list.
+     *
+     * @param cellSettingsList the cell settings list
+     */
+    public void setCellSettingsList(List<CellSettings> cellSettingsList) {
+        this.cellSettingsList = cellSettingsList;
+    }
+
+    /**
+     * Sets data clazz type.
+     *
+     * @param dataClazzType the data clazz type
+     */
+    public void setDataClazzType(Class dataClazzType) {
+        this.dataClazzType = dataClazzType;
+    }
+
+    /**
+     * Sets title.
+     *
+     * @param title the title
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /**
+     * Sets title style.
+     *
+     * @param titleStyle the title style
+     */
+    public void setTitleStyle(CellStyleSettings titleStyle) {
+        this.titleStyle = titleStyle;
+    }
+
+    /**
+     * Sets cell address map.
+     *
+     * @param cellAddressMap the cell address map
+     */
+    public void setCellAddressMap(Map<String, String> cellAddressMap) {
+        this.cellAddressMap = cellAddressMap;
+    }
+
+    /**
+     * Gets select target set.
+     *
+     * @return the select target set
+     */
+    public Set<String> getSelectTargetSet() {
+        return selectTargetSet;
+    }
+
+    public Integer getStartRowNum() {
+        return startRowNum;
+    }
+
+    public void setStartRowNum(Integer startRowNum) {
+        this.startRowNum = startRowNum;
+    }
+
+    public void setSelectTargetSet(Set<String> selectTargetSet) {
+        this.selectTargetSet = selectTargetSet;
     }
 }
