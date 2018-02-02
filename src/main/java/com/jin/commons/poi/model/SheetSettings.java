@@ -41,7 +41,29 @@ public final class SheetSettings {
      */
     private CellStyleSettings titleStyle;
 
-    private List<TableSettings> tableSettingsList;
+    /**
+     * 列设置
+     */
+    private List<CellSettings> cellSettingsList;
+
+    /**
+     * 导出的数据
+     */
+    private List exportData;
+
+    /**
+     * 数据class类型
+     */
+    private Class dataClazzType;
+
+    private Integer cellCount;
+
+    private Map<String,String> cellAddressMap = new HashMap();
+
+    /**
+     * The Select target set.
+     */
+    public Set<String> selectTargetSet = new HashSet<String>();
 
     /**
      * @author: wujinglei
@@ -84,8 +106,7 @@ public final class SheetSettings {
      */
     public SheetSettings(String sheetName, Class dataClazzType) {
         this.sheetName = sheetName;
-        this.tableSettingsList = new ArrayList();
-        this.tableSettingsList.add(new TableSettings(dataClazzType));
+        this.dataClazzType = dataClazzType;
     }
 
     /**
@@ -99,7 +120,6 @@ public final class SheetSettings {
         this.sheetName = sheetName;
         this.sheetSeq = sheetSeq;
         this.skipRows = skipRows;
-        this.tableSettingsList = new ArrayList();
     }
 
     /**
@@ -117,8 +137,7 @@ public final class SheetSettings {
         this.sheetName = sheetName;
         this.sheetSeq = sheetSeq;
         this.skipRows = skipRows;
-        this.tableSettingsList = new ArrayList();
-        this.tableSettingsList.add(new TableSettings(dataClazzType));
+        this.dataClazzType = dataClazzType;
     }
 
     /**
@@ -133,8 +152,8 @@ public final class SheetSettings {
      */
     public SheetSettings(String sheetName, List exportData, Class dataClazzType) {
         this.sheetName = sheetName;
-        this.tableSettingsList = new ArrayList();
-        this.tableSettingsList.add(new TableSettings(exportData,dataClazzType));
+        this.exportData = exportData;
+        this.dataClazzType = dataClazzType;
     }
 
     /**
@@ -210,19 +229,11 @@ public final class SheetSettings {
      * @param list the list
      */
     public void setCellSettings(List<CellSettings> list) {
-        if (this.tableSettingsList == null){
-            this.tableSettingsList = new ArrayList();
-            this.tableSettingsList.add(new TableSettings());
-        }
-        this.tableSettingsList.get(0).setCellSettings(list);
+        this.cellSettingsList = list;
     }
 
     public void setCellSettings(CellSettings[] arrays) {
-        if (this.tableSettingsList == null){
-            this.tableSettingsList = new ArrayList();
-            this.tableSettingsList.add(new TableSettings());
-        }
-        this.tableSettingsList.get(0).setCellSettings(new ArrayList<CellSettings>(Arrays.asList(arrays)));
+        this.cellSettingsList = new ArrayList<CellSettings>(Arrays.asList(arrays));
     }
 
     /**
@@ -249,12 +260,7 @@ public final class SheetSettings {
      * @param exportData the exportData to set
      */
     public void setExportData(List exportData) {
-
-        if (this.tableSettingsList == null){
-            this.tableSettingsList = new ArrayList();
-            this.tableSettingsList.add(new TableSettings());
-        }
-        this.tableSettingsList.get(0).setExportData(exportData);
+        this.exportData = exportData;
     }
 
     @Override
@@ -265,7 +271,12 @@ public final class SheetSettings {
                 ", sheetSeq=" + sheetSeq +
                 ", title='" + title + '\'' +
                 ", titleStyle=" + titleStyle +
-                ", tableSettingsList=" + tableSettingsList +
+                ", cellSettingsList=" + cellSettingsList +
+                ", exportData=" + exportData +
+                ", dataClazzType=" + dataClazzType +
+                ", cellCount=" + cellCount +
+                ", cellAddressMap=" + cellAddressMap +
+                ", selectTargetSet=" + selectTargetSet +
                 '}';
     }
 
@@ -288,15 +299,119 @@ public final class SheetSettings {
     }
 
     /**
-     * Gets table settings list.
+     * Gets data clazz type.
      *
-     * @return the table settings list
+     * @return the dataClazzType
      */
-    public List<TableSettings> getTableSettingsList() {
-        return tableSettingsList;
+    public Class getDataClazzType() {
+        return dataClazzType;
     }
 
-    public void getTableSettingsList(List<TableSettings> tableSettingsList) {
-        this.tableSettingsList = tableSettingsList;
+    /**
+     * Gets cell address map.
+     *
+     * @return the cell address map
+     */
+    public Map<String, String> getCellAddressMap() {
+        return cellAddressMap;
+    }
+
+    /**
+     * Sets cell address map.
+     *
+     * @param cellAddressMap the cell address map
+     */
+    public void setCellAddressMap(Map<String, String> cellAddressMap) {
+        this.cellAddressMap = cellAddressMap;
+    }
+
+    /**
+     * Sets title.
+     *
+     * @param title the title
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /**
+     * Sets title style.
+     *
+     * @param titleStyle the title style
+     */
+    public void setTitleStyle(CellStyleSettings titleStyle) {
+        this.titleStyle = titleStyle;
+    }
+
+    /**
+     * Gets cell settings list.
+     *
+     * @return the cell settings list
+     */
+    public List<CellSettings> getCellSettingsList() {
+        return cellSettingsList;
+    }
+
+    /**
+     * Sets cell settings list.
+     *
+     * @param cellSettingsList the cell settings list
+     */
+    public void setCellSettingsList(List<CellSettings> cellSettingsList) {
+        this.cellSettingsList = cellSettingsList;
+    }
+
+    /**
+     * Gets export data.
+     *
+     * @return the export data
+     */
+    public List getExportData() {
+        return exportData;
+    }
+
+    /**
+     * Sets data clazz type.
+     *
+     * @param dataClazzType the data clazz type
+     */
+    public void setDataClazzType(Class dataClazzType) {
+        this.dataClazzType = dataClazzType;
+    }
+
+    /**
+     * Gets cell count.
+     *
+     * @return the cell count
+     */
+    public Integer getCellCount() {
+        return cellCount;
+    }
+
+    /**
+     * Sets cell count.
+     *
+     * @param cellCount the cell count
+     */
+    public void setCellCount(Integer cellCount) {
+        this.cellCount = cellCount;
+    }
+
+    /**
+     * Gets select target set.
+     *
+     * @return the select target set
+     */
+    public Set<String> getSelectTargetSet() {
+        return selectTargetSet;
+    }
+
+    /**
+     * Sets select target set.
+     *
+     * @param selectTargetSet the select target set
+     */
+    public void setSelectTargetSet(Set<String> selectTargetSet) {
+        this.selectTargetSet = selectTargetSet;
     }
 }

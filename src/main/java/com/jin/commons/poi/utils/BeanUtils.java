@@ -1,5 +1,7 @@
 package com.jin.commons.poi.utils;
 
+import com.jin.commons.poi.exception.CellGetOrSetException;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ public class BeanUtils {
      * @param propertyName the property name
      * @return object object
      */
-    public static Object invokeGetter(Object obj, String propertyName) {
+    public static Object invokeGetter(Object obj, String propertyName) throws CellGetOrSetException {
         if (Map.class.isAssignableFrom(obj.getClass())) {
             return ((Map) obj).get(propertyName);
         }else {
@@ -42,7 +44,7 @@ public class BeanUtils {
      * @param propertyName the property name
      * @param value        the value
      */
-    public static void invokeSetter(Object obj, String propertyName, Object value) {
+    public static void invokeSetter(Object obj, String propertyName, Object value) throws CellGetOrSetException {
         if (Map.class.isAssignableFrom(obj.getClass())) {
             ((Map) obj).put(propertyName, value);
         }else {
@@ -59,7 +61,7 @@ public class BeanUtils {
      * @param value        the value
      * @param propertyType 用于查找Setter方法,为空时使用value的Class替代.
      */
-    public static void invokeSetter(Object obj, String propertyName, Object value, Class<?> propertyType) {
+    public static void invokeSetter(Object obj, String propertyName, Object value, Class<?> propertyType) throws CellGetOrSetException {
         Class<?> type = propertyType != null ? propertyType : value.getClass();
         String setterMethodName = set(propertyName);
         invokeMethod(obj, setterMethodName, new Class[]{type}, new Object[]{value});
@@ -135,10 +137,10 @@ public class BeanUtils {
      * @return object object
      */
     public static Object invokeMethod(final Object obj, final String methodName, final Class<?>[] parameterTypes,
-                                      final Object[] args) {
+                                      final Object[] args) throws CellGetOrSetException {
         Method method = getAccessibleMethod(obj, methodName, parameterTypes);
         if (method == null) {
-            throw new IllegalArgumentException("Could not find method [" + methodName + "] on target [" + obj + "]");
+            throw new CellGetOrSetException("Could not find method [" + methodName + "] on target [" + obj + "]");
         }
 
         try {

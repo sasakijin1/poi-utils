@@ -111,13 +111,12 @@ public final class OfficeIoUtils {
 	 * @author: wujinglei
 	 * @date: 2014-6-20 下午3:50:03
 	 * @Description: 导出出错信息内容
-	 * @param sheets
+	 * @param sheetSettingsList
 	 * @param errRecordRows
 	 * @return
 	 */
-	public static OfficeIoResult exportErrorRecord(SheetSettings[] sheets, Map<Integer,List> errRecordRows){
-		return null;
-//		return IO_FACTORY.exportXlsxErrorRecord(sheets, errRecordRows);
+	public static OfficeIoResult exportErrorRecord(List<SheetSettings> sheetSettingsList, Map<Integer,List> errRecordRows){
+		return IO_FACTORY.exportXlsxErrorRecord(sheetSettingsList, errRecordRows);
 	}
 
 	/**

@@ -21,19 +21,20 @@ import java.util.Map;
 public class Demo {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-//        exportXlsTemplate();
+        exportXlsTemplate();
         OfficeIoResult officeIoResult = importXls();
-//
-//        List list = officeIoResult.getImportList();
-//        if (list != null && list.size() > 0){
-//            exportXls(list);
-//        }
-//        if (!officeIoResult.isCompleted()){
-//            OfficeIoResult result = OfficeIoUtils.exportErrorRecord(officeIoResult.getSheetSettings(),officeIoResult.getErrRecordRows());
-//            FileOutputStream out = new FileOutputStream("d:\\successError.xlsx");
-//            result.getResultWorkbook().write(out);
-//            out.close();
-//        }
+
+        List list = officeIoResult.getImportList();
+        if (list != null && list.size() > 0){
+            exportXls(list);
+        }
+        System.out.println();
+        if (!officeIoResult.isCompleted()){
+            OfficeIoResult result = OfficeIoUtils.exportErrorRecord(officeIoResult.getSheetSettings(),officeIoResult.getErrRecordRows());
+            FileOutputStream out = new FileOutputStream("d:\\successError.xlsx");
+            result.getResultWorkbook().write(out);
+            out.close();
+        }
 
     }
 
@@ -57,7 +58,7 @@ public class Demo {
                 new CellSettings("companyAmount","companyAmount")
             }),
             new CellSettings("personal","personal").addSubCells(new CellSettings[]{
-                new CellSettings("personalBase","personalBase"),
+                new CellSettings("personalB1ase","personalBase"),
                 new CellSettings("personalRatio","personalRatio"),
                 new CellSettings("personalAmount","personalAmount")
             })
