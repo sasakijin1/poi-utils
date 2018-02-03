@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class Demo {
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+    public static void main(String[] args) throws IOException {
         exportXlsTemplate();
         OfficeIoResult officeIoResult = importXls();
 
@@ -28,14 +28,12 @@ public class Demo {
         if (list != null && list.size() > 0){
             exportXls(list);
         }
-        System.out.println();
         if (!officeIoResult.isCompleted()){
             OfficeIoResult result = OfficeIoUtils.exportErrorRecord(officeIoResult.getSheetSettings(),officeIoResult.getErrRecordRows());
             FileOutputStream out = new FileOutputStream("d:\\successError.xlsx");
             result.getResultWorkbook().write(out);
             out.close();
         }
-
     }
 
     private static OfficeIoResult importXls() {
@@ -58,7 +56,7 @@ public class Demo {
                 new CellSettings("companyAmount","companyAmount")
             }),
             new CellSettings("personal","personal").addSubCells(new CellSettings[]{
-                new CellSettings("personalB1ase","personalBase"),
+                new CellSettings("personal1Base","personalBase"),
                 new CellSettings("personalRatio","personalRatio"),
                 new CellSettings("personalAmount","personalAmount")
             })

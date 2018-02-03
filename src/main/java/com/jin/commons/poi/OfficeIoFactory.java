@@ -156,12 +156,12 @@ public class OfficeIoFactory {
                 // 构建表头
                 createHeader(sheet,sheetSettingsList.get(index));
 
-                int startRow = sheetSettingsList.get(index).getSkipRows() + 1;
+                AtomicInteger rowIndex = new AtomicInteger(sheetSettingsList.get(index).getSkipRows());
                 //写入出错行记录
                 List rowList = errRecordRows.get(index);
                 int errorRowCount = rowList.size();
                 for (int errorIndex = 0; errorIndex < errorRowCount; errorIndex++) {
-                    Row row = sheet.createRow(errorIndex + 1 + startRow);
+                    Row row = sheet.createRow(rowIndex.getAndIncrement());
                     if (rowList.get(errorIndex) instanceof Row) {
                         Iterator<Cell> it = ((Row) rowList.get(errorIndex)).cellIterator();
                         int cellIndex = 0;
@@ -333,12 +333,14 @@ public class OfficeIoFactory {
      */
     private void loadSheetData(OfficeIoResult result, Sheet sheet,SheetSettings sheetSettings){
 
+        result.getResultTotal()[sheetSettings.getSheetSeq()] = Long.valueOf(sheet.getLastRowNum()) - sheetSettings.getSkipRows() + 1;
+
         List tableDataList = new ArrayList();
 
         /*
          * 1. rowIndex
          */
-        final AtomicInteger autoInteger = new AtomicInteger(sheetSettings.getSkipRows() + 1);
+        final AtomicInteger autoInteger = new AtomicInteger(sheetSettings.getSkipRows());
         while (!tableIsClosed(sheet,autoInteger.get())){
             Row activeRow = sheet.getRow(autoInteger.get());
             if (activeRow != null) {
@@ -523,17 +525,19 @@ public class OfficeIoFactory {
                 sheetSettingsList.parallelStream().map(thisSheetSettings -> {
                     // checkSkipRow
                     if (thisSheetSettings.getSkipRows() == null) {
-                        thisSheetSettings.setSkipRows(1);
-                    }
-                    if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
-                        thisSheetSettings.setSkipRows(thisSheetSettings.getSkipRows() + 1);
-                    }
-                    if (thisSheetSettings.getCellSettingsList()
-                            .parallelStream()
-                            .anyMatch(cellSettings -> cellSettings.getSubCells() != null)){
-                        thisSheetSettings.setSkipRows(thisSheetSettings.getSkipRows() + 1);
-                    }
+                        int titleCount = 0;
+                        if (!StringUtils.isBlank(thisSheetSettings.getTitle())){
+                            titleCount = 1;
+                        }
 
+                        int subCell = 0;
+                        if (thisSheetSettings.getCellSettingsList()
+                                .parallelStream()
+                                .anyMatch(cellSettings -> cellSettings.getSubCells() != null)){
+                            subCell = 1;
+                        }
+                        thisSheetSettings.setSkipRows(1 + titleCount + subCell);
+                    }
                     // 初始化Cell信息
                     return initCellSettings(thisSheetSettings);
                 }).collect(Collectors.toList());
@@ -688,20 +692,24 @@ public class OfficeIoFactory {
             if (!cellSettings.getSelectCascadeFlag()){
                 String formulaString = cellSettings.getKey() + "_TEXT";
                 List<String> mapList = (List<String>) result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
-                int matchIndex = mapList.indexOf(cellValue);
-                if (matchIndex != -1){
-                    cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
-                }else{
-                    // TODO warn
+                if (mapList != null){
+                    int matchIndex = mapList.indexOf(cellValue);
+                    if (matchIndex != -1){
+                        cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
+                    }else{
+                        // TODO warn
+                    }
                 }
             }else {
                 String formulaString = cellSettings.getKey() + "_" + selectTargetValueMap.get(cellSettings.getSelectTargetKey()) + "_TEXT";
                 List<String> mapList = (List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString));
-                int matchIndex = mapList.indexOf(cellValue);
-                if (matchIndex != -1){
-                    cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
-                }else{
-                    // TODO warn
+                if (mapList != null){
+                    int matchIndex = mapList.indexOf(cellValue);
+                    if (matchIndex != -1){
+                        cellValue = ((List<String>)result.getSelectMap().get(DigestUtils.digestFormulaName(formulaString) + "_value")).get(matchIndex);
+                    }else{
+                        // TODO warn
+                    }
                 }
             }
         }
@@ -1348,20 +1356,14 @@ public class OfficeIoFactory {
     }
 
     private boolean tableIsClosed(Sheet sheet,Integer rowNum){
-        Row row = sheet.getRow(rowNum);
-        if (row != null) {
-            if (row.getRowNum() == row.getSheet().getLastRowNum()){
-                return true;
-            }else {
-                Cell cell = row.getCell(0);
-                if (cell != null && cell.getCellTypeEnum() == CellType.STRING && cell.getStringCellValue().contains("[-----]")){
-                    return true;
-                }else {
-                    return false;
-                }
-            }
-        }else {
+        if (rowNum > sheet.getLastRowNum()){
             return true;
+        }else {
+            Row row = sheet.getRow(rowNum);
+            if (row != null) {
+                return false;
+            }
         }
+        return false;
     }
 }

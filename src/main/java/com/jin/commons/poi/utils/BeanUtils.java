@@ -1,6 +1,8 @@
 package com.jin.commons.poi.utils;
 
 import com.jin.commons.poi.exception.CellGetOrSetException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -13,6 +15,9 @@ import java.util.Map;
  * @author wujinglei
  */
 public class BeanUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(BeanUtils.class);
+
     /**
      * CGLIB
      */
@@ -29,11 +34,16 @@ public class BeanUtils {
      * @return object object
      */
     public static Object invokeGetter(Object obj, String propertyName) throws CellGetOrSetException {
-        if (Map.class.isAssignableFrom(obj.getClass())) {
-            return ((Map) obj).get(propertyName);
-        }else {
-            String getterMethodName = get(propertyName);
-            return invokeMethod(obj, getterMethodName, new Class[]{}, new Object[]{});
+        try{
+            if (Map.class.isAssignableFrom(obj.getClass())) {
+                return ((Map) obj).get(propertyName);
+            }else {
+                String getterMethodName = get(propertyName);
+                return invokeMethod(obj, getterMethodName, new Class[]{}, new Object[]{});
+            }
+        }catch (Exception e){
+            log.warn(e.getMessage(),e);
+            throw new CellGetOrSetException(e.getMessage());
         }
     }
 
@@ -62,9 +72,14 @@ public class BeanUtils {
      * @param propertyType 用于查找Setter方法,为空时使用value的Class替代.
      */
     public static void invokeSetter(Object obj, String propertyName, Object value, Class<?> propertyType) throws CellGetOrSetException {
-        Class<?> type = propertyType != null ? propertyType : value.getClass();
-        String setterMethodName = set(propertyName);
-        invokeMethod(obj, setterMethodName, new Class[]{type}, new Object[]{value});
+        try{
+            Class<?> type = propertyType != null ? propertyType : value.getClass();
+            String setterMethodName = set(propertyName);
+            invokeMethod(obj, setterMethodName, new Class[]{type}, new Object[]{value});
+        }catch (Exception e){
+            log.warn(e.getMessage(),e);
+            throw new CellGetOrSetException(e.getMessage());
+        }
     }
 
     /**
