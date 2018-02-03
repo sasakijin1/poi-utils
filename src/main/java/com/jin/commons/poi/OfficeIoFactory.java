@@ -454,13 +454,19 @@ public class OfficeIoFactory {
         if (hasSubTitle){
             // 有合并表头
             sheetSettings.getCellSettingsList().stream().forEach(thisCellSettings -> {
+
+                if (thisCellSettings.getSubCells() != null) {
+                    CellRangeAddress region = new CellRangeAddress(startRow.getRowNum(), startRow.getRowNum(), thisCellSettings.getCellSeq(), thisCellSettings.getCellSeq() + thisCellSettings.getSubCells().size() - 1);
+                    sheet.addMergedRegion(region);
+                    RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
+                    RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
+                }
                 Cell cell = createHeaderCell(startRow, thisCellSettings);
 
                 cell.setCellValue(thisCellSettings.getColName());
 
-                if (thisCellSettings.getSubCells() != null) {
-                    sheet.addMergedRegion(new CellRangeAddress(startRow.getRowNum(), startRow.getRowNum(), thisCellSettings.getCellSeq(), thisCellSettings.getCellSeq() + thisCellSettings.getSubCells().size() - 1));
-                }
             });
 
             Row subRow = sheet.createRow(startRow.getRowNum() + 1);
