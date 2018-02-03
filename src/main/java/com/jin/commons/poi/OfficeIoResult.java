@@ -51,9 +51,9 @@ public final class OfficeIoResult<T> {
 	private Map<String, List<String>> selectMap = new HashMap();
 
 	/**
-	 * 返回成功的结果条数
+	 * 返回全部条数
 	 */
-	private Long[] resultTotal;
+	private Long[] totalCount;
 	
 	/**
 	 * 文件中的行数
@@ -86,7 +86,7 @@ public final class OfficeIoResult<T> {
 	 */
 	public OfficeIoResult(SheetSettings[] sheets ){
 		if (sheets != null){
-			resultTotal = new Long[sheets.length];
+			totalCount = new Long[sheets.length];
 		}
 	}
 
@@ -97,26 +97,8 @@ public final class OfficeIoResult<T> {
 	 */
 	public OfficeIoResult(List<SheetSettings> sheets ){
 		if (sheets != null){
-			resultTotal = new Long[sheets.size()];
+			totalCount = new Long[sheets.size()];
 		}
-	}
-
-	/**
-	 * Get result total long [ ].
-	 *
-	 * @return the resultTotal
-	 */
-	public Long[] getResultTotal() {
-		return resultTotal;
-	}
-
-	/**
-	 * Sets result total.
-	 *
-	 * @param resultTotal the resultTotal to set
-	 */
-	public void setResultTotal(Long[] resultTotal) {
-		this.resultTotal = resultTotal;
 	}
 
 	/**
@@ -164,6 +146,11 @@ public final class OfficeIoResult<T> {
 		return resultWorkbook;
 	}
 
+	/**
+	 * Setresult workbook.
+	 *
+	 * @param workbook the workbook
+	 */
 	public void setresultWorkbook(Workbook workbook){
 		this.resultWorkbook = (XSSFWorkbook) workbook;
 	}
@@ -310,7 +297,7 @@ public final class OfficeIoResult<T> {
 	 * @Description: 将最终总数量进行赋值
 	 */
 	public void setResultCount(int sheetIndex,Long rows){
-		this.resultTotal[sheetIndex] = rows;
+		this.totalCount[sheetIndex] = rows;
 	}
 
 	/**
@@ -385,5 +372,21 @@ public final class OfficeIoResult<T> {
 		return selectMap;
 	}
 
+	/**
+	 * Get total count long [ ].
+	 *
+	 * @return the long [ ]
+	 */
+	public Long[] getTotalCount() {
+		return totalCount;
+	}
 
+	/**
+	 * Sets total count.
+	 *
+	 * @param totalCount the total count
+	 */
+	public void setTotalCount(Long[] totalCount) {
+		this.totalCount = totalCount;
+	}
 }

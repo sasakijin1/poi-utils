@@ -333,7 +333,7 @@ public class OfficeIoFactory {
      */
     private void loadSheetData(OfficeIoResult result, Sheet sheet,SheetSettings sheetSettings){
 
-        result.getResultTotal()[sheetSettings.getSheetSeq()] = Long.valueOf(sheet.getLastRowNum()) - sheetSettings.getSkipRows() + 1;
+        result.getTotalCount()[sheetSettings.getSheetSeq()] = Long.valueOf(sheet.getLastRowNum()) - sheetSettings.getSkipRows() + 1;
 
         List tableDataList = new ArrayList();
 

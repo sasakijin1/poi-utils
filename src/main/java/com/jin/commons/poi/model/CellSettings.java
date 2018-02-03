@@ -304,9 +304,15 @@ public final class CellSettings {
 	 * @return the cell settings
 	 */
 	public CellSettings addCellSelect(String key,String name,List selectList){
+		this.isSelect = true;
 		if (selectList != null && !selectList.isEmpty()) {
-			this.isSelect = true;
 			this.cellSelectSettings = new CellSelectSettings(key, name, selectList);
+		}else {
+			if (selectList == null){
+				if (this.cellSelectSettings == null){
+					this.cellSelectSettings = new CellSelectSettings(new String[0]);
+				}
+			}
 		}
 		return this;
 	}
@@ -319,7 +325,13 @@ public final class CellSettings {
 	 */
 	public CellSettings addCellSelect(String[] array){
 		this.isSelect = true;
-		this.cellSelectSettings = new CellSelectSettings(array);
+		if (array == null){
+			if (this.cellSelectSettings == null){
+				this.cellSelectSettings = new CellSelectSettings(new String[0]);
+			}
+		}else {
+			this.cellSelectSettings = new CellSelectSettings(array);
+		}
 		return this;
 	}
 
@@ -359,9 +371,13 @@ public final class CellSettings {
 	 * @return the cell settings
 	 */
 	public CellSettings addCellSelect(Map map){
+		this.isSelect = true;
 		if (map != null && !map.isEmpty()){
-			this.isSelect = true;
 			this.cellSelectSettings = new CellSelectSettings(map);
+		}else {
+			if (this.cellSelectSettings == null){
+				this.cellSelectSettings = new CellSelectSettings(new String[0]);
+			}
 		}
 		return this;
 	}
